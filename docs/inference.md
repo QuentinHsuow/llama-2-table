@@ -93,7 +93,7 @@ python examples/inference.py --model_name <training_config.output_dir> --peft_mo
 
 ## Loading back FSDP checkpoints
 
-In case you have fine-tuned your model with pure FSDP and saved the checkpoints with "SHARDED_STATE_DICT" as shown [here](../src/llama_recipes/configs/fsdp.py), you can use this converter script to convert the FSDP Sharded checkpoints into HuggingFace checkpoints. This enables you to use the inference script normally as mentioned above.
+In case you have fine-tuned your model with pure FSDP and saved the checkpoints with "SHARDED_STATE_DICT" as shown [here](../llama_recipes/configs/fsdp.py), you can use this converter script to convert the FSDP Sharded checkpoints into HuggingFace checkpoints. This enables you to use the inference script normally as mentioned above.
 **To convert the checkpoint use the following command**:
 
 This is helpful if you have fine-tuned you model using FSDP only as follows:

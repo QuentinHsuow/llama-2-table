@@ -58,7 +58,7 @@ Optional dependencies can also be combines with [option1,option2].
 
 ⚠️ **Note** ⚠️  Some features (especially fine-tuning with FSDP + PEFT) currently require PyTorch nightlies to be installed. Please make sure to install the nightlies if you're using these features following [this guide](https://pytorch.org/get-started/locally/).
 
-**Note** All the setting defined in [config files](src/llama_recipes/configs/) can be passed as args through CLI when running the script, there is no need to change from config files directly.
+**Note** All the setting defined in [config files](llama_recipes/configs/) can be passed as args through CLI when running the script, there is no need to change from config files directly.
 
 **Note** In case need to run PEFT model with FSDP, please make sure to use the PyTorch Nightlies.
 
@@ -105,7 +105,7 @@ All the parameters in the examples and recipes below need to be further tuned to
 
 * Default dataset and other LORA config has been set to `samsum_dataset`.
 
-* Make sure to set the right path to the model in the [training config](src/llama_recipes/configs/training.py).
+* Make sure to set the right path to the model in the [training config](llama_recipes/configs/training.py).
 
 ### Single GPU:
 
@@ -121,7 +121,7 @@ Here we make use of Parameter Efficient Methods (PEFT) as described in the next 
 
 **Note** if you are running on a machine with multiple GPUs please make sure to only make one of them visible using `export CUDA_VISIBLE_DEVICES=GPU:id`
 
-**Make sure you set `save_model` parameter to save the model. Be sure to check the other training parameter in [train config](src/llama_recipes/configs/training.py) as well as others in the config folder as needed. All parameter can be passed as args to the training script. No need to alter the config files.**
+**Make sure you set `save_model` parameter to save the model. Be sure to check the other training parameter in [train config](llama_recipes/configs/training.py) as well as others in the config folder as needed. All parameter can be passed as args to the training script. No need to alter the config files.**
 
 
 ### Multiple GPUs One Node:
@@ -178,21 +178,21 @@ You can read more about our fine-tuning strategies [here](./docs/LLM_finetuning.
 # Repository Organization
 This repository is organized in the following way:
 
-[configs](src/llama_recipes/configs/): Contains the configuration files for PEFT methods, FSDP, Datasets.
+[configs](llama_recipes/configs/): Contains the configuration files for PEFT methods, FSDP, Datasets.
 
 [docs](docs/): Example recipes for single and multi-gpu fine-tuning recipes.
 
-[datasets](src/llama_recipes/datasets/): Contains individual scripts for each dataset to download and process. Note: Use of any of the datasets should be in compliance with the dataset's underlying licenses (including but not limited to non-commercial uses)
+[datasets](llama_recipes/datasets/): Contains individual scripts for each dataset to download and process. Note: Use of any of the datasets should be in compliance with the dataset's underlying licenses (including but not limited to non-commercial uses)
 
 [examples](./examples/): Contains examples script for finetuning and inference of the Llama 2 model as well as how to use them safely.
 
-[inference](src/llama_recipes/inference/): Includes modules for inference for the fine-tuned models.
+[inference](llama_recipes/inference/): Includes modules for inference for the fine-tuned models.
 
-[model_checkpointing](src/llama_recipes/model_checkpointing/): Contains FSDP checkpoint handlers.
+[model_checkpointing](llama_recipes/model_checkpointing/): Contains FSDP checkpoint handlers.
 
-[policies](src/llama_recipes/policies/): Contains FSDP scripts to provide different policies, such as mixed precision, transformer wrapping policy and activation checkpointing along with any precision optimizer (used for running FSDP with pure bf16 mode).
+[policies](llama_recipes/policies/): Contains FSDP scripts to provide different policies, such as mixed precision, transformer wrapping policy and activation checkpointing along with any precision optimizer (used for running FSDP with pure bf16 mode).
 
-[utils](src/llama_recipes/utils/): Utility files for:
+[utils](llama_recipes/utils/): Utility files for:
 
 - `train_utils.py` provides training/eval loop and more train utils.
 
