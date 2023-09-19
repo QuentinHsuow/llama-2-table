@@ -5,7 +5,9 @@ import os
 from pkg_resources import packaging
 
 import fire
+import json
 import torch
+from pathlib import Path
 import torch.distributed as dist
 import torch.optim as optim
 from peft import get_peft_model, prepare_model_for_int8_training
@@ -124,10 +126,15 @@ def main(**kwargs):
     tokenizer = LlamaTokenizer.from_pretrained(train_config.model_name)
     tokenizer.add_special_tokens(
             {
-
                 "pad_token": "<PAD>",
             }
         )
+
+    with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as f:
+        special_tokens = json.load(f)['special_tokens']
+    tokenizer.add_tokens(special_tokens, special_tokens=True)
+    model.resize_token_embeddings(len(tokenizer))
+
     if train_config.use_peft:
         peft_config = generate_peft_config(train_config, kwargs)
         model = get_peft_model(model, peft_config)
@@ -136,9 +143,7 @@ def main(**kwargs):
     #setting up FSDP if enable_fsdp is enabled
     if train_config.enable_fsdp:
         if not train_config.use_peft and train_config.freeze_layers:
-
             freeze_transformer_layers(train_config.num_freeze_layers)
-
         mixed_precision_policy, wrapping_policy = get_policies(fsdp_config, rank)
         my_auto_wrapping_policy = fsdp_auto_wrap_policy(model, LlamaDecoderLayer)
 

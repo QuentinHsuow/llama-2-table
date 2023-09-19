@@ -1,0 +1,10 @@
+{
+  "limit": 2000,
+  "extend": 50,
+  "special_tokens": [
+    "<BEGIN_T>", "<END_T>",
+    "<BEGIN_Q>", "<END_Q>",
+    "<tr>", "</tr>"],
+  "prompt_template": "<BEGIN_Q>Read the following table, and determine the number of header rows in this table.<END_Q><BEGIN_T>{}<END_T>",
+  "pattern": "<BEGIN_A>(\\d+)<END_A>"
+}

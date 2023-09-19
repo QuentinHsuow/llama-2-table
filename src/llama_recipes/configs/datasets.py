@@ -26,8 +26,16 @@ class alpaca_dataset:
     train_split: str = "train"
     test_split: str = "val"
     data_path: str = "src/llama_recipes/datasets/alpaca_data.json"
-    
-    
+
+
+@dataclass
+class tablesense_dataset:
+    dataset: str = 'tablesense_dataset'
+    train_split: str = "train"
+    test_split: str = "test_263"
+    data_path: str = "src/llama_recipes/datasets/tablesense_dataset"
+
+
 @dataclass
 class custom_dataset:
     dataset: str = "custom_dataset"
