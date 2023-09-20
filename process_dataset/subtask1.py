@@ -7,7 +7,7 @@ from data_augmentation import delete_snd
 
 
 # read SETTINGS
-with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as settings_file:
+with open(os.path.join(Path(__file__).parent.parent, 'settings.json'), 'r') as settings_file:
     settings_json = json.load(settings_file)
     limit = settings_json['limit']
     prompt_template = settings_json['prompt_template']
