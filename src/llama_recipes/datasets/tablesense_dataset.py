@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import Dataset
 from pathlib import Path
 
-with open(os.path.join(Path(__file__).parent.parent.parent.parent.parent, 'settings.json'), 'r') as settings:
+with open(os.path.join(Path(__file__).parent.parent.parent.parent, 'settings.json'), 'r') as settings:
     settings_json = json.load(settings)
     limit = settings_json['limit']
 
