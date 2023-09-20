@@ -5,6 +5,7 @@ from tqdm import tqdm
 from pathlib import Path
 from data_augmentation import delete_snd
 
+
 # read SETTINGS
 with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as settings_file:
     settings_json = json.load(settings_file)
@@ -56,7 +57,7 @@ def get_answer(tags, rows):
 
 
 def transform_json(data):
-    return {'prompt': prompt_template.format(to_markdown_table(data['rows'])), 'answer': str(data['answer'])}
+    return {'prompt': prompt_template.format(to_markdown_table(data['rows'])), 'answer': "Number: " + str(data['answer'])}
 
 
 def extract_from_table(rows, tags):

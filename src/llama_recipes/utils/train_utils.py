@@ -4,6 +4,7 @@
 import os
 import time
 import yaml
+import math
 from pathlib import Path
 from pkg_resources import packaging
 
@@ -15,20 +16,22 @@ from torch.distributed.fsdp import StateDictType
 from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
 from tqdm import tqdm
 from transformers import LlamaTokenizer
-
+import matplotlib.pyplot as plt
 
 from llama_recipes.model_checkpointing import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
 from llama_recipes.policies import fpSixteen,bfSixteen_mixed, get_llama_wrapper
 from llama_recipes.utils.memory_utils import MemoryTrace
 
-
+steps_per_update = 20
 def set_tokenizer_params(tokenizer: LlamaTokenizer):
     tokenizer.pad_token_id = 0
     tokenizer.padding_side = "left"
-    
+
+
 # Converting Bytes to Megabytes
 def byte2mb(x):
     return int(x / 2**20)
+
 
 def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_scheduler, gradient_accumulation_steps, train_config, fsdp_config=None, local_rank=None, rank=None):
     """
@@ -65,6 +68,8 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
     best_val_loss = float("inf")
     for epoch in range(train_config.num_epochs):
         epoch_start_time = time.perf_counter()
+        if epoch == 0 or epoch == 1:
+            train_loss_step = []
         with MemoryTrace() as memtrace:  # track the memory usage
             model.train()
             total_loss = 0.0
@@ -78,6 +83,7 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                         batch[key] = batch[key].to('cuda:0')              
                 loss = model(**batch).loss
                 loss = loss / gradient_accumulation_steps
+                train_loss_step.append(loss.detach().to('cpu').float())
                 total_loss += loss.detach().float()
                 if train_config.use_fp16:
                     # if fp16 is enabled, use gradient scaler to handle gradient update
@@ -96,9 +102,10 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                         pbar.update(1)
 
                 pbar.set_description(f"Training Epoch: {epoch+1}/{train_config.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
+                draw_plot(train_loss_step, step=step, epoch=epoch)
             pbar.close()
                 
-        epoch_end_time = time.perf_counter()-epoch_start_time
+        epoch_end_time = time.perf_counter() - epoch_start_time
         epoch_times.append(epoch_end_time)    
         # Reducing total_loss across all devices if there's more than one CUDA device
         if torch.cuda.device_count() > 1 and train_config.enable_fsdp:
@@ -209,6 +216,7 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
         
     return results
 
+
 def evaluation(model,train_config, eval_dataloader, local_rank, tokenizer):
     """
     Evaluates the model on the given dataloader
@@ -264,6 +272,7 @@ def evaluation(model,train_config, eval_dataloader, local_rank, tokenizer):
         
     return eval_ppl, eval_epoch_loss
 
+
 def freeze_transformer_layers(model, num_layer):
    for i, layer in enumerate(model.model.layers):
             if i < num_layer:
@@ -313,6 +322,7 @@ def get_parameter_dtypes(model):
         parameter_dtypes[name] = parameter.dtype
     return parameter_dtypes
 
+
 def print_model_size(model, config, rank: int = 0) -> None:
     """
     Print model name, the number of trainable parameters and initialization time.
@@ -328,8 +338,6 @@ def print_model_size(model, config, rank: int = 0) -> None:
         print(f"--> Model {config.model_name}")
         total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"\n--> {config.model_name} has {total_params / 1e6} Million params\n")
-
-
 
 
 def get_policies(cfg, rank):
@@ -363,6 +371,7 @@ def get_policies(cfg, rank):
             print(f"bFloat16 support not present. Using FP32, and not mixed precision")
     wrapping_policy = get_llama_wrapper()
     return mixed_precision_policy, wrapping_policy
+
 
 def save_train_params(train_config, fsdp_config, rank):
     """
@@ -402,3 +411,16 @@ def save_train_params(train_config, fsdp_config, rank):
             f.write(config_yaml)
         if rank==0:
             print(f"training params are saved in {file_name}")
+
+
+def draw_plot(train_loss_step, step, epoch):
+    if (step + 1) % steps_per_update == 0:
+        plt.figure()
+        plt.xlabel('Step')
+        plt.ylabel('Loss')
+        plt.title(f'Loss Curve: Epoch {epoch}')
+        plt.grid(True)
+        plt.plot(range(len(train_loss_step)), train_loss_step, label='Training Loss')
+        plt.legend()
+        plt.savefig(f"Loss_Curve_Epoch{epoch}.png")
+        plt.close()
