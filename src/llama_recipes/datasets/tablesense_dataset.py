@@ -3,9 +3,7 @@ import json
 import os
 import torch
 
-from sentencepiece import SentencePieceProcessor
 from torch.utils.data import Dataset
-from typing import List
 
 
 class TableSenseDataset(Dataset):
