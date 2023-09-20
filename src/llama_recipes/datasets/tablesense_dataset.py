@@ -4,10 +4,14 @@ import os
 import torch
 
 from torch.utils.data import Dataset
+from pathlib import Path
 
+with open(os.path.join(Path(__file__).parent.parent.parent, 'settings.json'), 'r') as settings:
+    settings_json = json.load(settings)
+    limit = settings_json['limit']
 
 class TableSenseDataset(Dataset):
-    def __init__(self, dataset_config, tokenizer, partition="train", max_words=2000):
+    def __init__(self, dataset_config, tokenizer, partition="train", max_words=limit):
         self.tables = json.load(open(os.path.join(dataset_config.data_path, partition + "_row_feature.json")))
         self.tokenizer = tokenizer
         self.max_words = max_words
