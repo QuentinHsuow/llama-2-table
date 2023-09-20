@@ -82,7 +82,7 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                     else:
                         batch[key] = batch[key].to('cuda:0')
 
-                print(batch.shape)
+                print(**batch.shape)
                 loss = model(**batch).loss
                 loss = loss / gradient_accumulation_steps
                 train_loss_step.append(loss.detach().to('cpu').float())
