@@ -162,10 +162,11 @@ def run(feature_file: str):
     for table in tqdm(tables):
         data = get_output_from_table_one(table, dic)
         if data:
-            if len(data['prompt']) + len(data['answer']) > limit:
+            data_json = transform_json(data)
+            if len(data_json['prompt']) + len(data_json['answer']) > limit:
                 err_count += 1
                 continue
-            output.append(transform_json(data))
+            output.append(data_json)
             if data['answer'] > 2:
                 data_da = transform_json(delete_snd(data))
                 output.append(data_da)
