@@ -130,7 +130,7 @@ def main(**kwargs):
             }
         )
 
-    with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as f:
+    with open(os.path.join(Path(__file__).parent, '../../settings.json'), 'r') as f:
         special_tokens = json.load(f)['special_tokens']
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     model.resize_token_embeddings(len(tokenizer))

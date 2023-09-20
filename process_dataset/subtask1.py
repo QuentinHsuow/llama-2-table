@@ -1,28 +1,20 @@
-from tqdm import tqdm
 import jsonlines
-from prompt_template import prompt_template
+import os
+import json
+from tqdm import tqdm
+from pathlib import Path
+from data_augmentation import delete_snd
 
-# SETTINGS
+# read SETTINGS
+with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as settings_file:
+    settings_json = json.load(settings_file)
+    limit = settings_json['limit']
+    prompt_template = settings_json['prompt_template']
 save_prefix = "/spot/v-qinyuxu/"
-
-limit = 3100
-
-
-def to_markdown_table(rows):
-    return '\n'.join(rows)
+save_folder = "llama_dataset/"
 
 
-def get_answer(tags, rows):
-    num_header = 0
-    for tag in tags:
-        if tag == "SND" or tag == "HEADER":
-            num_header += 1
-        else:
-            break
-
-    return 'Number:' + str(num_header) + ';Rows: ' + '\n'.join(rows[:num_header])
-
-
+# read table from dataset
 def get_full_table():
     with open(save_prefix + 'SavedFileNew/' + 'test_full.txt', 'r') as f:
         tables = f.readlines()
@@ -35,7 +27,7 @@ def get_full_table():
         while next_index < len(tables) and '<begin>' not in tables[next_index]:
             next_index += 1
         specifier, tag = tables[index].split('<begin>')
-        for tmp_index in range(index+1, next_index):
+        for tmp_index in range(index + 1, next_index):
             tag += tables[tmp_index]
         assert specifier.startswith('\\\\')
         dic[specifier] = tag.replace('\n', '')
@@ -44,12 +36,33 @@ def get_full_table():
     return dic
 
 
+# change table to answer form
+def to_markdown_table(rows):
+    res = ""
+    for row in rows:
+        res += "<tr>" + row + "</tr>"
+    return res
+
+
+# get answer from tags and rows
+def get_answer(tags, rows):
+    num_header = 0
+    for tag in tags:
+        if tag == "SND" or tag == "HEADER":
+            num_header += 1
+        else:
+            break
+    return num_header
+
+
+def transform_json(data):
+    return {'prompt': prompt_template.format(to_markdown_table(data['rows'])), 'answer': str(data['answer'])}
+
+
 def extract_from_table(rows, tags):
     # for all the rows starting from the header down to the second to last row
-    # if BOD exists, then it's necessary to extract at least one BOD and one DAT in this data section
-    # if SND exists, then include it
-    # if BLA exists, then discard it
-    # if AGG exists, then keep it
+    # BOD: it's necessary to extract at least one BOD and one DAT in this data section; SND: include it
+    # BLA: discard it; AGG: keep it
 
     ori_tags = tags
     num_header = 0
@@ -60,10 +73,14 @@ def extract_from_table(rows, tags):
             break
 
     to_include = list(range(num_header))
-    length = len(prompt_template) + len('\n'.join(rows[:num_header])) + len(get_answer(tags, rows))
+    length = (len(prompt_template)  # length of the template
+              + len(to_markdown_table(rows[:num_header]))  # length of the table
+              + 10)  # length of answer
+
     if tags[-1] != "SND":
-        to_include.append(len(tags)-1)
-        length += len(rows[-1])
+        to_include.append(len(tags) - 1)
+        length += len(to_markdown_table([rows[-1]]))
+
     if length > limit:
         return None
     is_non_snd = False
@@ -71,24 +88,24 @@ def extract_from_table(rows, tags):
         if tag == "SND" and is_non_snd is False:
             continue
         if tag == "AGG" or tag == "SND" or tag == "SEC":
-            if length + len(rows[index]) + 1 <= limit:
+            if length + len(to_markdown_table([rows[index]])) <= limit:
                 is_non_snd = True
                 to_include.append(index)
-                length += len(rows[index]) + 1
+                length += len(to_markdown_table([rows[index]]))
         if tag == "BOD":
-            if length + len(rows[index]) <= limit:
+            if length + len(to_markdown_table([rows[index]])) <= limit:
                 is_non_snd = True
                 to_include.append(index)
-                length += len(rows[index]) + 1
+                length += len(to_markdown_table([rows[index]])) + 1
     index = num_header
     while index < len(tags) - 1:
         if to_include.count(index) != 0:
             index += 1
         elif tags[index] == "SND" and is_non_snd is False:
             index += 1
-        elif length + len(rows[index]) <= limit:
+        elif length + len(to_markdown_table([rows[index]])) <= limit:
             to_include.append(index)
-            length += len(rows[index]) + 1
+            length += len(to_markdown_table([rows[index]]))
             index += 1
         else:
             break
@@ -102,11 +119,10 @@ def extract_from_table(rows, tags):
         return None
 
     assert get_answer(tags, rows) == get_answer(ori_tags, rows)
-    return {"prompt": prompt_template.format(to_markdown_table(rows)), "answer": get_answer(tags, rows)}
+    return {"rows": rows, "answer": get_answer(tags, rows)}
 
 
 def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
-
     # process original feature file and add specifier to the output file
     tmp_split_feature = original_feature_one.replace('\n', '').split('|')
 
@@ -126,17 +142,17 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
     assert all(['<begin>' not in row for row in list_of_row_original_table])
     assert len(list_of_row_original_table) == len(tags)
     output = prompt_template.format(to_markdown_table(list_of_row_original_table))
-    if len(output) + len(get_answer(tags, list_of_row_original_table)) + 2 <= limit:
-        return {"prompt": output, "answer": get_answer(tags, list_of_row_original_table)}
+    if len(output) + len(str(get_answer(tags, list_of_row_original_table))) + 2 <= limit:
+        return {"rows": list_of_row_original_table, "answer": get_answer(tags, list_of_row_original_table)}
     else:
         return extract_from_table(list_of_row_original_table, tags)
 
 
-def get_feature(feature_file: str):
+def run(feature_file: str):
     # get input
-    count = 0
     err_count = 0
     dic = get_full_table()
+    sample = open(save_prefix + save_folder + 'sample.txt', 'w')
     with open(save_prefix + 'original_feature/' + feature_file + '.txt', 'r') as f:
         tables = f.readlines()
 
@@ -145,20 +161,24 @@ def get_feature(feature_file: str):
     for table in tqdm(tables):
         data = get_output_from_table_one(table, dic)
         if data:
-            if len(data['prompt']) + len(data['answer']) > limit + 20:
+            if len(data['prompt']) + len(data['answer']) > limit:
                 err_count += 1
                 continue
-            output.append(data)
+            output.append(transform_json(data))
+            if data['answer'] > 2:
+                data_da = transform_json(delete_snd(data))
+                output.append(data_da)
+                sample.write(data_da['prompt'] + '\n' + data_da['answer'] + '\n')
         else:
-            count += 1
-
-    print(count)
+            err_count += 1
     print(err_count)
+
     # write into one json file
-    f = jsonlines.open(save_prefix + 'tablesense_dataset_new/' + feature_file + '.json', 'w')
+    sample.close()
+    f = jsonlines.open(save_prefix + save_folder + feature_file + '.json', 'w')
     jsonlines.Writer.write(f, output)
 
 
 if __name__ == '__main__':
-    for feature_file in ['train_row_feature', 'test_263_row_feature']:
-        get_feature(feature_file)
+    for file in ['train_row_feature', 'test_263_row_feature']:
+        run(file)
