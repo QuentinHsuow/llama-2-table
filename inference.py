@@ -17,6 +17,7 @@ from tqdm import tqdm
 from transformers import LlamaTokenizer
 from llama_recipes.inference.safety_utils import get_safety_checker
 from llama_recipes.inference.model_utils import load_model, load_peft_model, load_llama_from_config
+from llama_recipes.configs.datasets import tablesense_dataset
 
 
 def main(
@@ -48,9 +49,8 @@ def main(
         **kwargs
 ):
     count = 0
-    user_prompt_list = json.load(open(os.path.join("../data/code/llama-recipes/ft_datasets/tablesense_dataset",
-                                                   "train_row_feature.json" if is_dev else "test_263_row_feature.json"),
-                                      'r'))
+    user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path,
+                                                   "train_row_feature.json" if is_dev else "test_263_row_feature.json"), 'r'))
 
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
