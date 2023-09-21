@@ -128,7 +128,7 @@ def main(**kwargs):
     with open(os.path.join(Path(__file__).parent, '../../settings.json'), 'r') as f:
         special_tokens = json.load(f)['special_tokens']
     tokenizer.add_tokens(special_tokens, special_tokens=True)
-    model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens), pad_to_multiple_of=8)
+    model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens))
 
     if train_config.use_peft:
         peft_config = generate_peft_config(train_config, kwargs)
