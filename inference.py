@@ -92,8 +92,7 @@ def main(
     random.shuffle(user_prompt_list)
     for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
         user_prompt = data['prompt']
-        batch = tokenizer(user_prompt, padding='max_length', truncation=True, max_length=max_padding_length,
-                          return_tensors="pt")
+        batch = tokenizer(user_prompt, return_tensors="pt")
         batch = {k: v.to("cuda") for k, v in batch.items()}
         with torch.no_grad():
             outputs = model.generate(
@@ -109,7 +108,7 @@ def main(
                 length_penalty=length_penalty,
                 **kwargs
             )
-        output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        output_text = tokenizer.decode(outputs[0], skip_special_tokens=False)
 
         if not is_multi:
             print(f"Input: \n {user_prompt}")
