@@ -14,7 +14,6 @@ from peft import get_peft_model, prepare_model_for_int8_training
 from torch.distributed.fsdp import (
     FullyShardedDataParallel as FSDP,
 )
-from torch.distributed.fsdp.fully_sharded_data_parallel import CPUOffload
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DistributedSampler
 from transformers import (
@@ -68,7 +67,6 @@ def main(**kwargs):
         setup_environ_flags(rank)
 
     # Load the pre-trained model and setup its configuration
-    use_cache = False if train_config.enable_fsdp else None
     if train_config.enable_fsdp and train_config.low_cpu_fsdp:
         """
         for FSDP, we can save cpu memory by loading pretrained model on rank0 only.
@@ -86,11 +84,9 @@ def main(**kwargs):
                 train_config.model_name,
                 load_in_8bit=True if train_config.quantization else None,
                 device_map="auto" if train_config.quantization else None,
-                use_cache=use_cache,
             )
         else:
             llama_config = LlamaConfig.from_pretrained(train_config.model_name)
-            llama_config.use_cache = use_cache
             with torch.device("meta"):
                 model = LlamaForCausalLM(llama_config)
 
@@ -99,7 +95,6 @@ def main(**kwargs):
             train_config.model_name,
             load_in_8bit=True if train_config.quantization else None,
             device_map="auto" if train_config.quantization else None,
-            use_cache=use_cache,
         )
     if train_config.enable_fsdp and train_config.use_fast_kernels:
         """
@@ -150,7 +145,6 @@ def main(**kwargs):
         model = FSDP(
             model,
             auto_wrap_policy= my_auto_wrapping_policy if train_config.use_peft else wrapping_policy,
-            cpu_offload=CPUOffload(offload_params=True) if fsdp_config.fsdp_cpu_offload else None,
             mixed_precision=mixed_precision_policy if not fsdp_config.pure_bf16 else None,
             sharding_strategy=fsdp_config.sharding_strategy,
             device_id=torch.cuda.current_device(),
@@ -231,13 +225,12 @@ def main(**kwargs):
             momentum_dtype=torch.bfloat16,
             variance_dtype=torch.bfloat16,
             use_kahan_summation=False,
-            weight_decay=train_config.weight_decay,
         )
     else:
         optimizer = optim.AdamW(
             model.parameters(),
             lr=train_config.lr,
-            weight_decay=train_config.weight_decay,
+            weight_decay=0.0,
         )
     scheduler = StepLR(optimizer, step_size=1, gamma=train_config.gamma)
 
