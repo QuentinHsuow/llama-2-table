@@ -422,5 +422,5 @@ def draw_plot(train_loss_step, step, epoch):
         plt.grid(True)
         plt.plot(range(len(train_loss_step)), train_loss_step, label='Training Loss')
         plt.legend()
-        plt.savefig(f"Loss_Curve_Epoch{epoch}.png")
+        plt.savefig(f"loss_fig/Loss_Curve_Epoch{epoch}.png")
         plt.close()
