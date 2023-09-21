@@ -160,7 +160,7 @@ def run(feature_file: str):
 
     # get output
     output = []
-    for table in tqdm(tables[:2]):
+    for table in tqdm(tables[:4]):
         data = get_output_from_table_one(table, dic)
         if data:
             data_json = transform_json(data)
