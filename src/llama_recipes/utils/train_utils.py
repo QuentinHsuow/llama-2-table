@@ -136,9 +136,9 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
         lr_scheduler.step()
           
         if train_config.run_validation:
-            eval_ppl, eval_epoch_loss = evaluation(model, train_config, eval_dataloader, local_rank, tokenizer)
+            # eval_ppl, eval_epoch_loss = evaluation(model, train_config, eval_dataloader, local_rank, tokenizer)
             checkpoint_start_time = time.perf_counter()
-            if train_config.save_model and eval_epoch_loss < best_val_loss:
+            if train_config.save_model and True: # eval_epoch_loss < best_val_loss:
                 if train_config.enable_fsdp:
                     dist.barrier()
                 if train_config.use_peft:
@@ -180,15 +180,15 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                     dist.barrier()
             checkpoint_end_time = time.perf_counter() - checkpoint_start_time
             checkpoint_times.append(checkpoint_end_time)
-            if eval_epoch_loss < best_val_loss:
-                best_val_loss = eval_epoch_loss
-                if train_config.enable_fsdp:
-                    if rank==0:
-                        print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-                else:
-                    print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-            val_loss.append(best_val_loss)
-            val_prep.append(eval_ppl)
+            # if eval_epoch_loss < best_val_loss:
+            #     best_val_loss = eval_epoch_loss
+            #     if train_config.enable_fsdp:
+            #         if rank==0:
+            #             print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
+            #     else:
+            #         print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
+            # val_loss.append(best_val_loss)
+            # val_prep.append(eval_ppl)
         if train_config.enable_fsdp:
             if rank==0:
                 print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
