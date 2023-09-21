@@ -43,11 +43,14 @@ def main(
         max_padding_length: int = None,  # the max padding length to be used with tokenizer padding the prompts.
         use_fast_kernels: bool = False,
         is_multi: bool = False,
+        is_dev: bool = False,
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
 ):
     count = 0
-    user_prompt_list = json.load(open(os.path.join("../data/code/llama-recipes/ft_datasets/tablesense_dataset", "test_263_row_feature.json"), 'r'))
+    user_prompt_list = json.load(open(os.path.join("../data/code/llama-recipes/ft_datasets/tablesense_dataset",
+                                                   "train_row_feature.json" if is_dev else "test_263_row_feature.json"),
+                                      'r'))
 
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
