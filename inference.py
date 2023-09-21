@@ -80,7 +80,7 @@ def main(
             "pad_token": "<PAD>",
         }
     )
-    with open(os.path.join(Path(__file__).parent.parent, 'settings.json'), 'r') as f:
+    with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as f:
         settings = json.load(f)
         special_tokens = settings['special_tokens']
         prompt_template = settings['prompt_template']
