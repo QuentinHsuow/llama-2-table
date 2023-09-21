@@ -13,10 +13,10 @@ def test_custom_dataset(step_lr, optimizer, get_model, train, mocker):
     from llama_recipes.finetuning import main
 
     kwargs = {
-        "dataset": "custom_dataset",
-        "model_name": "decapoda-research/llama-7b-hf", # We use the tokenizer as a surrogate for llama2 tokenizer here
-        "custom_dataset.file": "examples/custom_dataset.py",
-        "custom_dataset.train_split": "validation",
+        "dataset": "tablesense_dataset",
+        "model_name": "Llama-2--7b-hf", # We use the tokenizer as a surrogate for llama2 tokenizer here
+        "custom_dataset.file": "src/llama_recipes/datasets/tablesense_dataset.py",
+        "custom_dataset.train_split": "test_263",
         "batch_size_training": 2,
         "use_peft": False,
         }

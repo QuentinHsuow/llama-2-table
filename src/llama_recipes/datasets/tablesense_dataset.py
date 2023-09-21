@@ -23,19 +23,15 @@ class TableSenseDataset(Dataset):
         IGNORE_INDEX = -100  # The default setting in CrossEntropyLoss
         table_item = self.tables[index]
         prompt = table_item['prompt']
-        print("prompt length:" + str(len(prompt)))
-        print("prompt:" + str(prompt))
         example = prompt + table_item['answer']
         prompt = torch.tensor(
             self.tokenizer.encode(prompt), dtype=torch.int64
         )
-        print("prompt shape" + str(prompt.shape[0]))
         example = self.tokenizer.encode(example)
         example.append(self.tokenizer.eos_token_id)
         example = torch.tensor(
             example, dtype=torch.int64
         )
-        print("max words " + str(self.max_words))
         padding = self.max_words - example.shape[0]
         assert padding > 0
         example = torch.cat((example, torch.zeros(padding, dtype=torch.int64) - 1))
