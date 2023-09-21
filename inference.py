@@ -90,7 +90,7 @@ def main(
     if is_multi:
         error_log = open('inference_error.txt', 'w')
     random.shuffle(user_prompt_list)
-    for data in tqdm(user_prompt_list) if not is_multi else user_prompt_list:
+    for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
         user_prompt = data['prompt']
         batch = tokenizer(user_prompt, padding='max_length', truncation=True, max_length=max_padding_length,
                           return_tensors="pt")
@@ -112,8 +112,9 @@ def main(
         output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         if not is_multi:
+            print(f"Input: \n {user_prompt}")
+            print(f"Answer: {data['answer']}")
             print(f"Model Output: \n {output_text}")
-            error_log.close()
             return
 
         if not output_text.find('<BEGIN_A>') or not output_text.find('<END_A>'):
