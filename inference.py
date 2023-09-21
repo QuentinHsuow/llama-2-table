@@ -51,7 +51,6 @@ def main(
     count = 0
     user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path,
                                                    "train_row_feature.json" if is_dev else "test_263_row_feature.json"), 'r'))
-
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
@@ -84,6 +83,7 @@ def main(
         settings = json.load(f)
         special_tokens = settings['special_tokens']
         prompt_template = settings['prompt_template']
+        max_padding_length = settings['limit']
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens))
 
