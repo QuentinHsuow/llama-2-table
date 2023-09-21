@@ -87,7 +87,8 @@ def main(
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens))
 
-    error_log = open('../data/code/llama-recipes/error.txt', 'w')
+    if is_multi:
+        error_log = open('inference_error.txt', 'w')
     random.shuffle(user_prompt_list)
     for data in tqdm(user_prompt_list) if not is_multi else user_prompt_list:
         user_prompt = data['prompt']
