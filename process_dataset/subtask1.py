@@ -168,11 +168,11 @@ def run(feature_file: str):
                 err_count += 1
                 continue
             output.append(data_json)
-            if data['answer'] > 2:
-                data_da = transform_json(delete_snd(data))
-                output.append(data_da)
-                sample.write(data_json['prompt'] + '\n' + data_json['answer'] + '\n')
-                sample.write(data_da['prompt'] + '\n' + data_da['answer'] + '\n\n')
+            # if data['answer'] > 2:
+            #     data_da = transform_json(delete_snd(data))
+            #     output.append(data_da)
+            #     sample.write(data_json['prompt'] + '\n' + data_json['answer'] + '\n')
+            #     sample.write(data_da['prompt'] + '\n' + data_da['answer'] + '\n\n')
         else:
             err_count += 1
     print(err_count)

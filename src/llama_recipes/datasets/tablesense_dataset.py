@@ -34,6 +34,7 @@ class TableSenseDataset(Dataset):
             example, dtype=torch.int64
         )
         padding = self.max_words - example.shape[0]
+        assert padding > 0
         example = torch.cat((example, torch.zeros(padding, dtype=torch.int64) - 1))
         labels = copy.deepcopy(example)
         labels[: len(prompt)] = -1
