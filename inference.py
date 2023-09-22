@@ -88,6 +88,8 @@ def main(
         error_log = open('inference_error.txt', 'w')
     random.shuffle(user_prompt_list)
     continue_count = 0
+    wrong_format_count = 0
+    wrong_answer_count = 0
     for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
         user_prompt = data['prompt']
         batch = tokenizer(user_prompt, return_tensors="pt")
@@ -118,8 +120,6 @@ def main(
             print(f"Model Output: \n {output_text}")
             return
 
-        wrong_format_count = 0
-        wrong_answer_count = 0
         if not output_text.find('Number: '):
             wrong_format_count += 1
             error_log.write(output_text)
