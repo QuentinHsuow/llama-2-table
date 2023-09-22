@@ -14,10 +14,13 @@ import random
 from typing import List
 from pathlib import Path
 from tqdm import tqdm
-from transformers import LlamaTokenizer
+from transformers import LlamaTokenizer, default_data_collator
 from llama_recipes.inference.safety_utils import get_safety_checker
 from llama_recipes.inference.model_utils import load_model, load_peft_model, load_llama_from_config
 from llama_recipes.configs.datasets import tablesense_dataset
+from llama_recipes.configs import train_config
+from llama_recipes.utils.config_utils import generate_dataset_config
+from llama_recipes.utils.dataset_utils import get_preprocessed_dataset
 
 
 def main(
@@ -84,10 +87,26 @@ def main(
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens))
 
+    dataset_config = generate_dataset_config(train_config, kwargs)
+    dataset_val = get_preprocessed_dataset(
+        tokenizer,
+        dataset_config,
+        split="test",
+    )
+    valid_dataloader = torch.utils.data.DataLoader(
+        dataset_val,
+        batch_size=1,
+        num_workers=1,
+        pin_memory=True,
+        sampler=None,
+        drop_last=True,
+        collate_fn=default_data_collator,
+    )
+
     if is_multi:
         error_log = open('inference_error.txt', 'w')
     random.shuffle(user_prompt_list)
-    for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
+    for data in valid_dataloader:
         user_prompt = data['prompt']
         batch = tokenizer(user_prompt, return_tensors="pt")
         batch = {k: v.to("cuda") for k, v in batch.items()}
