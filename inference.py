@@ -48,7 +48,6 @@ def main(
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
 ):
-    count = 0
     user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path,
                                                    "train_row_feature.json" if is_dev else "test_263_row_feature.json"), 'r'))
     # Set the seeds for reproducibility
@@ -108,7 +107,7 @@ def main(
                 length_penalty=length_penalty,
                 **kwargs
             )
-        output_text = tokenizer.decode(outputs[0], skip_special_tokens=False)
+        output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         if not is_multi:
             print(f"Input: \n {user_prompt}")
@@ -116,19 +115,23 @@ def main(
             print(f"Model Output: \n {output_text}")
             return
 
-        if not output_text.find('<BEGIN_A>') or not output_text.find('<END_A>'):
+        wrong_format_count = 0
+        wrong_answer_count = 0
+        if not output_text.find('Number: '):
+            wrong_format_count += 1
             error_log.write(output_text)
         else:
             pattern = r'\d+'
             match = re.findall(pattern, output_text)
             reality = re.findall(pattern, data['answer'])
             if int(match[-1]) == int(reality[-1]):
-                count += 1
+                wrong_answer_count += 1
             else:
                 error_log.write(output_text)
 
     error_log.close()
-    print(count, len(user_prompt_list))
+    print(f"Wrong Answer: {wrong_answer_count}")
+    print(f"Wrong Format: {wrong_format_count}")
 
 
 if __name__ == "__main__":
