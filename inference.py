@@ -81,8 +81,6 @@ def main(
     with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as f:
         settings = json.load(f)
         special_tokens = settings['special_tokens']
-        prompt_template = settings['prompt_template']
-        max_padding_length = settings['limit']
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens))
 
