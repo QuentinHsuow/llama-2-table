@@ -130,7 +130,7 @@ def main(
             if int(match[-1]) == int(reality[-1]):
                 wrong_answer_count += 1
             else:
-                error_log.write(output_text)
+                error_log.write(output_text + '\n' + match[-1] + '\n' + reality[-1])
 
     error_log.close()
     print(f"Continue Count: {continue_count}")
