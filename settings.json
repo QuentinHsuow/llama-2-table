@@ -1,5 +1,5 @@
 {
-  "limit": 1800,
+  "limit": 1600,
   "extend": 50,
   "special_tokens": [
     "<BEGIN_T>", "<END_T>",
