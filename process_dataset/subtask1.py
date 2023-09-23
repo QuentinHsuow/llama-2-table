@@ -179,7 +179,7 @@ def run(feature_file: str):
 
     # write into one json file
     sample.close()
-    random.shuffle(output)
+    # random.shuffle(output)
     f = jsonlines.open(save_prefix + save_folder + feature_file + '.json', 'w')
     jsonlines.Writer.write(f, output)
 

@@ -86,7 +86,6 @@ def main(
 
     if is_multi:
         error_log = open('inference_error.txt', 'w')
-    random.shuffle(user_prompt_list)
     continue_count = 0
     wrong_format_count = 0
     wrong_answer_count = 0
