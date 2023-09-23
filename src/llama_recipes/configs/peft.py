@@ -6,7 +6,7 @@ from typing import List
 
 @dataclass
 class lora_config:
-     r: int=32
+     r: int=48
      lora_alpha: int=32
      target_modules: List[str] = field(default_factory=lambda: ["q_proj", "v_proj"])
      bias= "none"
