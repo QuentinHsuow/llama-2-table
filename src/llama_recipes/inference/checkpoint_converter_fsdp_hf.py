@@ -20,7 +20,7 @@ parent_directory = os.path.dirname(current_directory)
 
 # Append the parent directory to sys.path
 sys.path.append(parent_directory)
-from model_checkpointing import load_sharded_model_single_gpu
+from llama_recipes.model_checkpointing import load_sharded_model_single_gpu
 
 def main(
     fsdp_checkpoint_path="", # Path to FSDP Sharded model checkpoints
