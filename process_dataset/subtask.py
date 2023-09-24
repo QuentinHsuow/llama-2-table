@@ -68,7 +68,7 @@ def get_answer(tags, rows, index):
 
 def transform_json(data, prompt_template):
     return {'prompt': prompt_template.format(to_markdown_table(data['rows'])),
-            'answer': "Number: " + str(data['answer'])}
+            'answer': "Answer: " + str(data['answer'])}
 
 
 def extract_from_table(rows, tags, prompt_template, subtask_index):
