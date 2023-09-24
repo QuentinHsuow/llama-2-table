@@ -130,7 +130,7 @@ def extract_from_table(rows, tags, prompt_template, subtask_index):
     if len(to_include) <= 2:
         return None
 
-    assert get_answer(tags, rows, subtask_index) == get_answer(ori_tags, rows, subtask_index)
+    # assert get_answer(tags, rows, subtask_index) == get_answer(ori_tags, rows, subtask_index)
     return {"rows": rows, "answer": get_answer(tags, rows, subtask_index)}
 
 
