@@ -45,14 +45,25 @@ def to_markdown_table(rows):
 
 
 # get answer from tags and rows
-def get_answer(tags, rows):
+def get_answer(tags, rows, index):
     num_header = 0
     for tag in tags:
         if tag == "SND" or tag == "HEADER":
             num_header += 1
         else:
             break
-    return num_header
+    if index == 1:
+        return num_header
+    elif index == 2:
+        is_have = False
+        for tag in tags[num_header:-1]:
+            if tag == "AGG" or tag == "SEC":
+                is_have = True
+            if tags[num_header:-1].count("AGG") > 1:
+                is_have = True
+        return is_have
+    elif index == 3:
+        return tags[-1] == "AGG"
 
 
 def transform_json(data, prompt_template):
@@ -60,7 +71,7 @@ def transform_json(data, prompt_template):
             'answer': "Number: " + str(data['answer'])}
 
 
-def extract_from_table(rows, tags, prompt_template):
+def extract_from_table(rows, tags, prompt_template, subtask_index):
     # for all the rows starting from the header down to the second to last row
     # BOD: it's necessary to extract at least one BOD and one DAT in this data section; SND: include it
     # BLA: discard it; AGG: keep it
@@ -119,11 +130,11 @@ def extract_from_table(rows, tags, prompt_template):
     if len(to_include) <= 2:
         return None
 
-    assert get_answer(tags, rows) == get_answer(ori_tags, rows)
-    return {"rows": rows, "answer": get_answer(tags, rows)}
+    assert get_answer(tags, rows, subtask_index) == get_answer(ori_tags, rows, subtask_index)
+    return {"rows": rows, "answer": get_answer(tags, rows, subtask_index)}
 
 
-def get_output_from_table_one(original_feature_one, dic_specifier_to_row, prompt_template):
+def get_output_from_table_one(original_feature_one, dic_specifier_to_row, prompt_template, subtask_index):
     # process original feature file and add specifier to the output file
     tmp_split_feature = original_feature_one.replace('\n', '').split('|')
 
@@ -143,10 +154,10 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row, prompt
     assert all(['<begin>' not in row for row in list_of_row_original_table])
     assert len(list_of_row_original_table) == len(tags)
     output = prompt_template.format(to_markdown_table(list_of_row_original_table))
-    if len(output) + len(str(get_answer(tags, list_of_row_original_table))) + 2 <= limit:
-        return {"rows": list_of_row_original_table, "answer": get_answer(tags, list_of_row_original_table)}
+    if len(output) + len(str(get_answer(tags, list_of_row_original_table, subtask_index))) + 2 <= limit:
+        return {"rows": list_of_row_original_table, "answer": get_answer(tags, list_of_row_original_table, subtask_index)}
     else:
-        return extract_from_table(list_of_row_original_table, tags, prompt_template)
+        return extract_from_table(list_of_row_original_table, tags, prompt_template, subtask_indx)
 
 
 def run(feature_file: str, subtask_index):
@@ -161,7 +172,7 @@ def run(feature_file: str, subtask_index):
     # get output
     output = []
     for table in tqdm(tables):
-        data = get_output_from_table_one(table, dic, prompt_template)
+        data = get_output_from_table_one(table, dic, prompt_template, subtask_index)
         if data:
             data_json = transform_json(data, prompt_template)
             if len(data_json['prompt']) + len(data_json['answer']) > limit:
