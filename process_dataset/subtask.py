@@ -157,7 +157,7 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row, prompt
     if len(output) + len(str(get_answer(tags, list_of_row_original_table, subtask_index))) + 2 <= limit:
         return {"rows": list_of_row_original_table, "answer": get_answer(tags, list_of_row_original_table, subtask_index)}
     else:
-        return extract_from_table(list_of_row_original_table, tags, prompt_template, subtask_indx)
+        return extract_from_table(list_of_row_original_table, tags, prompt_template, subtask_index)
 
 
 def run(feature_file: str, subtask_index):
