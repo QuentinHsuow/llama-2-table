@@ -1,17 +1,15 @@
 import jsonlines
 import os
 import json
-import random
+import fire
 from tqdm import tqdm
 from pathlib import Path
-from data_augmentation import delete_snd
 
 
 # read SETTINGS
 with open(os.path.join(Path(__file__).parent.parent, 'settings.json'), 'r') as settings_file:
     settings_json = json.load(settings_file)
     limit = settings_json['limit']
-    prompt_template = settings_json['prompt_template']
 save_prefix = "/spot/v-qinyuxu/"
 save_folder = "llama_dataset/"
 
@@ -57,11 +55,12 @@ def get_answer(tags, rows):
     return num_header
 
 
-def transform_json(data):
-    return {'prompt': prompt_template.format(to_markdown_table(data['rows'])), 'answer': "Number: " + str(data['answer'])}
+def transform_json(data, prompt_template):
+    return {'prompt': prompt_template.format(to_markdown_table(data['rows'])),
+            'answer': "Number: " + str(data['answer'])}
 
 
-def extract_from_table(rows, tags):
+def extract_from_table(rows, tags, prompt_template):
     # for all the rows starting from the header down to the second to last row
     # BOD: it's necessary to extract at least one BOD and one DAT in this data section; SND: include it
     # BLA: discard it; AGG: keep it
@@ -124,7 +123,7 @@ def extract_from_table(rows, tags):
     return {"rows": rows, "answer": get_answer(tags, rows)}
 
 
-def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
+def get_output_from_table_one(original_feature_one, dic_specifier_to_row, prompt_template):
     # process original feature file and add specifier to the output file
     tmp_split_feature = original_feature_one.replace('\n', '').split('|')
 
@@ -147,23 +146,24 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
     if len(output) + len(str(get_answer(tags, list_of_row_original_table))) + 2 <= limit:
         return {"rows": list_of_row_original_table, "answer": get_answer(tags, list_of_row_original_table)}
     else:
-        return extract_from_table(list_of_row_original_table, tags)
+        return extract_from_table(list_of_row_original_table, tags, prompt_template)
 
 
-def run(feature_file: str):
+def run(feature_file: str, subtask_index):
     # get input
     err_count = 0
     dic = get_full_table()
     sample = open(save_prefix + save_folder + 'sample.txt', 'w')
     with open(save_prefix + 'original_feature/' + feature_file + '.txt', 'r') as f:
         tables = f.readlines()
+    prompt_template = settings_json['prompt_template' + str(subtask_index)]
 
     # get output
     output = []
     for table in tqdm(tables):
-        data = get_output_from_table_one(table, dic)
+        data = get_output_from_table_one(table, dic, prompt_template)
         if data:
-            data_json = transform_json(data)
+            data_json = transform_json(data, prompt_template)
             if len(data_json['prompt']) + len(data_json['answer']) > limit:
                 err_count += 1
                 continue
@@ -184,6 +184,13 @@ def run(feature_file: str):
     jsonlines.Writer.write(f, output)
 
 
-if __name__ == '__main__':
+def main(
+        subtask_index: int = 1,
+):
+    assert 1 <= subtask_index <= 3
     for file in ['train_row_feature', 'test_263_row_feature']:
-        run(file)
+        run(file, subtask_index)
+
+
+if __name__ == '__main__':
+    fire.Fire(main)
