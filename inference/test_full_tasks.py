@@ -3,7 +3,7 @@ from inference_utils import get_type, calculate_stat
 
 def main():
     correct = 0
-    with open("test_result/result.json", 'r') as f:
+    with open("saved_result/result.json", 'r') as f:
         result = json.load(f)
     for data in result:
         data['res_type'] = get_type(data['result1'], data['result2'], data['result3'])
