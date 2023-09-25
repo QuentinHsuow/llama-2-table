@@ -19,7 +19,6 @@ from transformers import LlamaTokenizer
 from inference_utils import calculate_f1
 from llama_recipes.inference.safety_utils import get_safety_checker
 from llama_recipes.inference.model_utils import load_model, load_peft_model, load_llama_from_config
-from llama_recipes.configs.datasets import tablesense_dataset
 
 saved_path = "saved_result"
 
