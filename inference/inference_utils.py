@@ -30,4 +30,5 @@ def calculate_stat(result, index):
                 FN += 1
             else:
                 TN += 1
+    print(TP, FP, FN, TN)
     return calculate_f1(TP=TP, FP=FP, FN=FN)
