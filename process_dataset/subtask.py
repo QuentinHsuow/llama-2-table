@@ -201,7 +201,7 @@ def run(feature_file):
     for table in tqdm(tables):
         data = get_output_from_table_one(table, dic)
         if data:
-            sample.write(str(data['rows']) + '\n' + data['answer1'] + '  ' + data['answer2'] + '  ' + data['answer3'] + '  ')
+            sample.write(str(data['rows']) + '\n' + str(data['answer1']) + '  ' + str(data['answer2']) + '  ' + str(data['answer3']) + '  ')
             data_json = transform_json(data)
             if len(data['rows']) + 20 + 150 > limit:
                 err_count += 1
