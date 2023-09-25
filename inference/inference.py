@@ -97,7 +97,7 @@ def main(
     right_answer_count = 0
     TP = TN = FP = FN = 0
     for index, data in enumerate(tqdm(user_prompt_list)) if is_multi else user_prompt_list:
-        user_prompt = prompt_template.map(data['rows'])
+        user_prompt = data[f'prompt{subtask_index}']
         batch = tokenizer(user_prompt, return_tensors="pt")
         batch = {k: v.to("cuda") for k, v in batch.items()}
         with torch.no_grad():
