@@ -54,7 +54,7 @@ def main(
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
 ):
-    user_prompt_list = json.load(open(os.path.join("test_result", "result.json"), 'r'))
+    user_prompt_list = json.load(open(os.path.join("saved_result", "result.json"), 'r'))
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
@@ -176,7 +176,7 @@ def main(
     print(f"Right Answer: {right_answer_count}")
     print(f"Wrong Format: {wrong_format_count}")
     if is_save:
-        f = jsonlines.open('result_files/result.json', 'w')
+        f = jsonlines.open('saved_result/result.json', 'w')
         jsonlines.Writer.write(f, user_prompt_list)
 
 
