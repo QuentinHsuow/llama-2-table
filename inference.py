@@ -19,6 +19,7 @@ from llama_recipes.inference.safety_utils import get_safety_checker
 from llama_recipes.inference.model_utils import load_model, load_peft_model, load_llama_from_config
 from llama_recipes.configs.datasets import tablesense_dataset
 
+saved_path = "saved_result"
 
 def calculate_f1(TP, FP, FN):
     precision = TP / (TP + FP)
@@ -52,6 +53,7 @@ def main(
         use_fast_kernels: bool = False,
         is_multi: bool = False,
         is_dev: bool = False,
+        is_save: bool = False,
         subtask_index: int = 1,
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
@@ -146,14 +148,16 @@ def main(
                 match = True
             elif output_text.strip()[-10:].count("False") > 0 or output_text.strip()[-10:].count("false") > 0:
                 match = False
+
             if data['answer'].count("True") > 0:
                 answer = True
             elif data['answer'].count("False") > 0:
                 answer = False
+
             if match is not None and answer is not None and match == answer:
                 if match is True:
                     TP += 1
-                if match is False:
+                elif match is False:
                     TN += 1
                 right_answer_count += 1
             elif match is None or answer is None:
@@ -161,13 +165,14 @@ def main(
             else:
                 if match is True:
                     FP += 1
-                else:
+                elif match is False:
                     FN += 1
                 error_log.write(output_text + '\n' + str(match) + '\n' + str(data['answer']))
 
     error_log.close()
-    precision, recall, f1 = calculate_f1(TP=TP, FP=FP, FN=FN)
-    print(f"precision: {precision}, recall: {recall}, f1: {f1}")
+    if subtask_index != 1:
+        precision, recall, f1 = calculate_f1(TP=TP, FP=FP, FN=FN)
+        print(f"precision: {precision}, recall: {recall}, f1: {f1}")
     print(f"Continue Count: {continue_count}")
     print(f"Right Answer: {right_answer_count}")
     print(f"Wrong Format: {wrong_format_count}")

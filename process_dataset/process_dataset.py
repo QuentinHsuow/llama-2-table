@@ -100,7 +100,7 @@ def extract_from_table(rows, tags):
             break
 
     to_include = [len(tags)-1]
-    length = len(prompt_template) - 2 + 14 + len(rows[-1])
+    length = 150 - 2 + 14 + len(rows[-1])
     is_skip = False
     for index, tag in enumerate(tags[num_header:-1]):
         if is_skip:
