@@ -14,6 +14,9 @@ save_prefix = "/spot/v-qinyuxu/"
 save_folder = "llama_dataset/"
 
 
+def get_type():
+
+
 # read table from dataset
 def get_full_table():
     with open(save_prefix + 'SavedFileNew/' + 'test_full.txt', 'r') as f:
@@ -66,12 +69,15 @@ def get_answer(tags, rows, index):
         return tags[-1] == "AGG"
 
 
-def transform_json(data, prompt_template):
-    return {'prompt': prompt_template.format(to_markdown_table(data['rows'])),
-            'answer': "Answer: " + str(data['answer'])}
+def transform_json(data):
+    return {'rows': data['rows'],
+            'answer1': "Answer: " + str(data['answer1']),
+            'answer2': "Answer: " + str(data['answer2']),
+            'answer3': "Answer: " + str(data['answer3']),
+            }
 
 
-def extract_from_table(rows, tags, prompt_template, subtask_index):
+def extract_from_table(rows, tags,):
     # for all the rows starting from the header down to the second to last row
     # BOD: it's necessary to extract at least one BOD and one DAT in this data section; SND: include it
     # BLA: discard it; AGG: keep it
@@ -85,7 +91,7 @@ def extract_from_table(rows, tags, prompt_template, subtask_index):
             break
 
     to_include = list(range(num_header))
-    length = (len(prompt_template)  # length of the template
+    length = (  150  # length of the template
               + len(to_markdown_table(rows[:num_header]))  # length of the table
               + 10)  # length of answer
 
@@ -131,10 +137,15 @@ def extract_from_table(rows, tags, prompt_template, subtask_index):
         return None
 
     # assert get_answer(tags, rows, subtask_index) == get_answer(ori_tags, rows, subtask_index)
-    return {"rows": rows, "answer": get_answer(tags, rows, subtask_index)}
+    return {
+        "rows": rows,
+        "answer1": get_answer(tags, rows, 1),
+        "answer2": get_answer(tags, rows, 2),
+        "answer3": get_answer(tags, rows, 3),
+    }
 
 
-def get_output_from_table_one(original_feature_one, dic_specifier_to_row, prompt_template, subtask_index):
+def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
     # process original feature file and add specifier to the output file
     tmp_split_feature = original_feature_one.replace('\n', '').split('|')
 
@@ -153,28 +164,32 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row, prompt
 
     assert all(['<begin>' not in row for row in list_of_row_original_table])
     assert len(list_of_row_original_table) == len(tags)
-    output = prompt_template.format(to_markdown_table(list_of_row_original_table))
-    if len(output) + len(str(get_answer(tags, list_of_row_original_table, subtask_index))) + 2 <= limit:
-        return {"rows": list_of_row_original_table, "answer": get_answer(tags, list_of_row_original_table, subtask_index)}
+    output = to_markdown_table(list_of_row_original_table)
+    if 150 + len(output) + 20 <= limit:
+        return {
+            "rows": list_of_row_original_table,
+            "answer1": get_answer(tags, list_of_row_original_table, 1),
+            "answer2": get_answer(tags, list_of_row_original_table, 2),
+            "answer3": get_answer(tags, list_of_row_original_table, 3)
+        }
     else:
-        return extract_from_table(list_of_row_original_table, tags, prompt_template, subtask_index)
+        return extract_from_table(list_of_row_original_table, tags)
 
 
-def run(feature_file: str, subtask_index):
+def run(feature_file):
     # get input
     err_count = 0
     dic = get_full_table()
     sample = open(save_prefix + save_folder + 'sample.txt', 'w')
     with open(save_prefix + 'original_feature/' + feature_file + '.txt', 'r') as f:
         tables = f.readlines()
-    prompt_template = settings_json['prompt_template' + str(subtask_index)]
 
     # get output
     output = []
     for table in tqdm(tables):
-        data = get_output_from_table_one(table, dic, prompt_template, subtask_index)
+        data = get_output_from_table_one(table, dic)
         if data:
-            data_json = transform_json(data, prompt_template)
+            data_json = transform_json(data)
             if len(data_json['prompt']) + len(data_json['answer']) > limit:
                 err_count += 1
                 continue
@@ -195,12 +210,9 @@ def run(feature_file: str, subtask_index):
     jsonlines.Writer.write(f, output)
 
 
-def main(
-        subtask_index: int = 1,
-):
-    assert 1 <= subtask_index <= 3
+def main():
     for file in ['train_row_feature', 'test_263_row_feature']:
-        run(file, subtask_index)
+        run(file)
 
 
 if __name__ == '__main__':
