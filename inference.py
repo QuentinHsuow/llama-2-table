@@ -45,6 +45,7 @@ def main(
         use_fast_kernels: bool = False,
         is_multi: bool = False,
         is_dev: bool = False,
+        subtask_index: int = 1,
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
 ):
@@ -88,7 +89,7 @@ def main(
         error_log = open('inference_error.txt', 'w')
     continue_count = 0
     wrong_format_count = 0
-    wrong_answer_count = 0
+    right_answer_count = 0
     for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
         user_prompt = data['prompt']
         batch = tokenizer(user_prompt, return_tensors="pt")
@@ -119,21 +120,32 @@ def main(
             print(f"Model Output: \n {output_text}")
             return
 
-        if not output_text.find('Number: '):
+        if not output_text.find('Answer: '):
             wrong_format_count += 1
             error_log.write(output_text)
-        else:
+        elif subtask_index == 1:
             pattern = r'\d+'
             match = re.findall(pattern, output_text)
             reality = re.findall(pattern, data['answer'])
             if int(match[-1]) == int(reality[-1]):
-                wrong_answer_count += 1
+                right_answer_count += 1
             else:
                 error_log.write(output_text + '\n' + match[-1] + '\n' + reality[-1])
+        else:
+            match = None
+            if output_text.strip()[-10:].count("True") > 0 or output_text.strip()[-10:].count("True") > 0:
+                match = True
+            elif output_text.strip()[-10:].count("False") > 0 or output_text.strip()[-10:].count("false") > 0:
+                match = False
+            if str(match) == data['answer']:
+                right_answer_count += 1
+            else:
+                error_log.write(output_text + '\n' + str(match) + '\n' + str(data['answer']))
+
 
     error_log.close()
     print(f"Continue Count: {continue_count}")
-    print(f"Wrong Answer: {wrong_answer_count}")
+    print(f"Right Answer: {right_answer_count}")
     print(f"Wrong Format: {wrong_format_count}")
 
 
