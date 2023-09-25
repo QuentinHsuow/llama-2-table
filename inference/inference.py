@@ -86,12 +86,11 @@ def main(
     with open(os.path.join(Path(__file__).parent, '../settings.json'), 'r') as f:
         settings = json.load(f)
         special_tokens = settings['special_tokens']
-        prompt_template = settings[f'prompt_template{subtask_index}']
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens))
 
     if is_multi:
-        error_log = open('inference_error.txt', 'w')
+        error_log = open(f'saved_result/inference_error/subtask_{subtask_index}.txt', 'w')
     continue_count = 0
     wrong_format_count = 0
     right_answer_count = 0
