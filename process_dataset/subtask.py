@@ -10,6 +10,9 @@ from pathlib import Path
 with open(os.path.join(Path(__file__).parent.parent, 'settings.json'), 'r') as settings_file:
     settings_json = json.load(settings_file)
     limit = settings_json['limit']
+    template1 = settings_json['prompt_template1']
+    template2 = settings_json['prompt_template2']
+    template3 = settings_json['prompt_template3']
 save_prefix = "/spot/v-qinyuxu/"
 save_folder = "llama_dataset/"
 
@@ -77,9 +80,11 @@ def get_answer(tags, rows, index):
 
 
 def transform_json(data):
-    return {'rows': data['rows'],
+    return {'prompt1': template1.map(data['rows']),
             'answer1': "Answer: " + str(data['answer1']),
+            'prompt2': template2.map(data['rows']),
             'answer2': "Answer: " + str(data['answer2']),
+            'prompt3': template3.map(data['rows']),
             'answer3': "Answer: " + str(data['answer3']),
             "type": get_type(data['answer1'], data['answer2'], data['answer3'])
             }
