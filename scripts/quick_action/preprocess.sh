@@ -8,4 +8,5 @@ exit
 EOF
 
 sshpass -p DKIResearcher2022~ rsync -av TableSense@4.193.133.95:/spot/v-qinyuxu/llama_dataset/ /mnt/c/Users/v-qinyuxu/Desktop/data/daily_archieve/2023_9_$date/llama_dataset_all/
-rsync -av llama_dataset_all/ FAREAST.hadong@gcrsandbox488.redmond.corp.microsoft.com:~/llama-2-table/src/llama_recipes/datasets/tablesense_dataset/subtask_all
+rsync -av /mnt/c/Users/v-qinyuxu/Desktop/data/daily_archieve/2023_9_$date/llama_dataset_all/ FAREAST.hadong@gcrsandbox488.redmond.corp.microsoft.com:~/llama-2-table/src/llama_recipes/datasets/tablesense_dataset/subtask_all
+rsync -av /mnt/c/Users/v-qinyuxu/Desktop/data/daily_archieve/2023_9_$date/llama_dataset_all/test_263_row_feature.json FAREAST.hadong@gcrsandbox488.redmond.corp.microsoft.com:~/llama-2-table/saved_result/result.json

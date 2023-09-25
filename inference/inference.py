@@ -11,6 +11,7 @@ import re
 import sys
 import time
 import random
+import jsonlines
 from typing import List
 from pathlib import Path
 from tqdm import tqdm
@@ -53,8 +54,7 @@ def main(
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
 ):
-    user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path, "subtask_all",
-                                                   "train_row_feature.json" if is_dev else "test_263_row_feature.json"), 'r'))
+    user_prompt_list = json.load(open(os.path.join("test_result", "result.json"), 'r'))
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
     torch.manual_seed(seed)
@@ -96,7 +96,7 @@ def main(
     wrong_format_count = 0
     right_answer_count = 0
     TP = TN = FP = FN = 0
-    for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
+    for index, data in enumerate(tqdm(user_prompt_list)) if is_multi else user_prompt_list:
         user_prompt = prompt_template.map(data['rows'])
         batch = tokenizer(user_prompt, return_tensors="pt")
         batch = {k: v.to("cuda") for k, v in batch.items()}
@@ -133,6 +133,7 @@ def main(
             pattern = r'\d+'
             match = re.findall(pattern, output_text)
             reality = re.findall(pattern, data[f'answer{subtask_index}'])
+            user_prompt_list[index][f'result{subtask_index}'] = match[-1]
             if int(match[-1]) == int(reality[-1]):
                 right_answer_count += 1
             else:
@@ -149,6 +150,8 @@ def main(
                 answer = True
             elif data[f'answer{subtask_index}'].count("False") > 0:
                 answer = False
+
+            user_prompt_list[index][f'result{subtask_index}'] = match
 
             if match is not None and answer is not None and match == answer:
                 if match is True:
@@ -172,6 +175,9 @@ def main(
     print(f"Continue Count: {continue_count}")
     print(f"Right Answer: {right_answer_count}")
     print(f"Wrong Format: {wrong_format_count}")
+    if is_save:
+        f = jsonlines.open('result_files/result.json', 'w')
+        jsonlines.Writer.write(f, user_prompt_list)
 
 
 if __name__ == "__main__":
