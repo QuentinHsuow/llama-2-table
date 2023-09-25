@@ -2,8 +2,15 @@ import jsonlines
 import os
 import json
 import fire
+import torch
 from tqdm import tqdm
 from pathlib import Path
+from transformers import (
+    LlamaForCausalLM,
+    LlamaTokenizer,
+    LlamaConfig,
+    default_data_collator,
+)
 
 
 # read SETTINGS
@@ -13,6 +20,7 @@ with open(os.path.join(Path(__file__).parent.parent, 'settings.json'), 'r') as s
     template1 = settings_json['prompt_template1']
     template2 = settings_json['prompt_template2']
     template3 = settings_json['prompt_template3']
+    special_tokens = settings_json['special_tokens']
 save_prefix = "/spot/v-qinyuxu/"
 save_folder = "llama_dataset/"
 
@@ -88,7 +96,7 @@ def transform_json(data):
             }
 
 
-def extract_from_table(rows, tags,):
+def extract_from_table(rows, tags, tokenizer):
     # for all the rows starting from the header down to the second to last row
     # BOD: it's necessary to extract at least one BOD and one DAT in this data section; SND: include it
     # BLA: discard it; AGG: keep it
@@ -103,12 +111,12 @@ def extract_from_table(rows, tags,):
 
     to_include = list(range(num_header))
     length = (  150  # length of the template
-              + len(to_markdown_table(rows[:num_header]))  # length of the table
-              + 10)  # length of answer
+              + torch.tensor(tokenizer.encode(to_markdown_table(rows[:num_header])), dtype=torch.int64).shape[0]
+              + 20)  # length of answer
 
     if tags[-1] != "SND":
         to_include.append(len(tags) - 1)
-        length += len(to_markdown_table([rows[-1]]))
+        length += torch.tensor(tokenizer.encode(to_markdown_table([rows[-1]])), dtype=torch.int64).shape[0]
 
     if length > limit:
         return None
@@ -117,24 +125,26 @@ def extract_from_table(rows, tags,):
         if tag == "SND" and is_non_snd is False:
             continue
         if tag == "AGG" or tag == "SND" or tag == "SEC":
-            if length + len(to_markdown_table([rows[index]])) <= limit:
+            new_len = torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
+            if length + new_len <= limit:
                 is_non_snd = True
                 to_include.append(index)
-                length += len(to_markdown_table([rows[index]]))
+                length += new_len
         if tag == "BOD":
-            if length + len(to_markdown_table([rows[index]])) <= limit:
+            new_len = torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
+            if length + new_len <= limit:
                 is_non_snd = True
                 to_include.append(index)
-                length += len(to_markdown_table([rows[index]])) + 1
+                length += new_len
     index = num_header
     while index < len(tags) - 1:
         if to_include.count(index) != 0:
             index += 1
         elif tags[index] == "SND" and is_non_snd is False:
             index += 1
-        elif length + len(to_markdown_table([rows[index]])) <= limit:
+        elif length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
             to_include.append(index)
-            length += len(to_markdown_table([rows[index]]))
+            length += torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
             index += 1
         else:
             break
@@ -149,14 +159,14 @@ def extract_from_table(rows, tags,):
 
     # assert get_answer(tags, rows, subtask_index) == get_answer(ori_tags, rows, subtask_index)
     return {
-        "rows": rows,
+        "rows": to_markdown_table(rows),
         "answer1": get_answer(tags, rows, 1),
         "answer2": get_answer(tags, rows, 2),
         "answer3": get_answer(tags, rows, 3),
     }
 
 
-def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
+def get_output_from_table_one(original_feature_one, dic_specifier_to_row, tokenizer):
     # process original feature file and add specifier to the output file
     tmp_split_feature = original_feature_one.replace('\n', '').split('|')
 
@@ -176,18 +186,19 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
     assert all(['<begin>' not in row for row in list_of_row_original_table])
     assert len(list_of_row_original_table) == len(tags)
     output = to_markdown_table(list_of_row_original_table)
-    if 150 + len(output) + 20 <= limit:
+    length = torch.tensor(tokenizer.encode(output), dtype=torch.int64).shape[0]
+    if length + 150 + 20 <= limit:
         return {
-            "rows": list_of_row_original_table,
+            "rows": output,
             "answer1": get_answer(tags, list_of_row_original_table, 1),
             "answer2": get_answer(tags, list_of_row_original_table, 2),
             "answer3": get_answer(tags, list_of_row_original_table, 3)
         }
     else:
-        return extract_from_table(list_of_row_original_table, tags)
+        return extract_from_table(list_of_row_original_table, tags, tokenizer)
 
 
-def run(feature_file):
+def run(feature_file, tokenizer):
     # get input
     err_count = 0
     dic = get_full_table()
@@ -198,19 +209,15 @@ def run(feature_file):
     # get output
     output = []
     for table in tqdm(tables):
-        data = get_output_from_table_one(table, dic)
+        data = get_output_from_table_one(table, dic, tokenizer)
         if data:
             sample.write('\n'.join(data['rows']) + '\n' + str(data['answer1']) + '  ' + str(data['answer2']) + '  ' + str(data['answer3']) + '  ' + '\n\n\n')
             data_json = transform_json(data)
-            if len(data['rows']) + 20 + 150 > limit:
+            length = torch.tensor(tokenizer.encode(data['rows']), dtype=torch.int64).shape[0]
+            if length + 20 + 150 > limit:
                 err_count += 1
                 continue
             output.append(data_json)
-            # if data['answer'] > 2:
-            #     data_da = transform_json(delete_snd(data))
-            #     output.append(data_da)
-            #     sample.write(data_json['prompt'] + '\n' + data_json['answer'] + '\n')
-            #     sample.write(data_da['prompt'] + '\n' + data_da['answer'] + '\n\n')
         else:
             err_count += 1
     print("Error: " + str(err_count))
@@ -222,10 +229,14 @@ def run(feature_file):
     jsonlines.Writer.write(f, output)
 
 
-def main():
+def main(
+        model_name: str
+):
+    tokenizer = LlamaTokenizer.from_pretrained(model_name)
+    tokenizer.add_special_tokens({"pad_token": "<PAD>"})
+    tokenizer.add_tokens(special_tokens, special_tokens=True)
     for file in ['train_row_feature', 'test_263_row_feature']:
-        run(file)
-
+        run(file, tokenizer)
 
 if __name__ == '__main__':
     fire.Fire(main)
