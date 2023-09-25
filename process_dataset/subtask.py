@@ -81,7 +81,7 @@ def transform_json(data):
             'answer1': "Answer: " + str(data['answer1']),
             'answer2': "Answer: " + str(data['answer2']),
             'answer3': "Answer: " + str(data['answer3']),
-            type: get_type(data['answer1'], data['answer2'], data['answer3'])
+            "type": get_type(data['answer1'], data['answer2'], data['answer3'])
             }
 
 
