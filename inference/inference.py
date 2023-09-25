@@ -94,7 +94,7 @@ def main(
     wrong_format_count = 0
     right_answer_count = 0
     TP = TN = FP = FN = 0
-    for index, data in tqdm(enumerate(user_prompt_list), total=len(user_prompt_list)) if is_multi else user_prompt_list:
+    for index, data in tqdm(enumerate(user_prompt_list), total=len(user_prompt_list)) if is_multi else enumerate(user_prompt_list):
         user_prompt = data[f'prompt{subtask_index}']
         batch = tokenizer(user_prompt, return_tensors="pt")
         batch = {k: v.to("cuda") for k, v in batch.items()}
