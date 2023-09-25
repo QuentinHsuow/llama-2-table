@@ -15,17 +15,12 @@ from typing import List
 from pathlib import Path
 from tqdm import tqdm
 from transformers import LlamaTokenizer
+from inference_utils import calculate_f1
 from llama_recipes.inference.safety_utils import get_safety_checker
 from llama_recipes.inference.model_utils import load_model, load_peft_model, load_llama_from_config
 from llama_recipes.configs.datasets import tablesense_dataset
 
 saved_path = "saved_result"
-
-def calculate_f1(TP, FP, FN):
-    precision = TP / (TP + FP)
-    recall = TP / (TP + FN)
-    f1 = 2 / (1 / precision + 1 / recall)
-    return precision, recall, f1
 
 
 def main(
@@ -58,7 +53,7 @@ def main(
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
 ):
-    user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path, f"subtask_{str(subtask_index)}",
+    user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path, "subtask_all",
                                                    "train_row_feature.json" if is_dev else "test_263_row_feature.json"), 'r'))
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
@@ -88,9 +83,10 @@ def main(
             "pad_token": "<PAD>",
         }
     )
-    with open(os.path.join(Path(__file__).parent, 'settings.json'), 'r') as f:
+    with open(os.path.join(Path(__file__).parent, '../settings.json'), 'r') as f:
         settings = json.load(f)
         special_tokens = settings['special_tokens']
+        prompt_template = settings[f'prompt_template{subtask_index}']
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     model.resize_token_embeddings(model.config.vocab_size + 1 + len(special_tokens))
 
@@ -101,7 +97,7 @@ def main(
     right_answer_count = 0
     TP = TN = FP = FN = 0
     for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
-        user_prompt = data['prompt']
+        user_prompt = prompt_template.map(data['rows'])
         batch = tokenizer(user_prompt, return_tensors="pt")
         batch = {k: v.to("cuda") for k, v in batch.items()}
         with torch.no_grad():
@@ -126,7 +122,7 @@ def main(
 
         if not is_multi:
             print(f"Input: \n {user_prompt}")
-            print(f"Answer: {data['answer']}")
+            print(f"Answer: {data[f'answer{subtask_index}']}")
             print(f"Model Output: \n {output_text}")
             return
 
@@ -136,7 +132,7 @@ def main(
         elif subtask_index == 1:
             pattern = r'\d+'
             match = re.findall(pattern, output_text)
-            reality = re.findall(pattern, data['answer'])
+            reality = re.findall(pattern, data[f'answer{subtask_index}'])
             if int(match[-1]) == int(reality[-1]):
                 right_answer_count += 1
             else:
@@ -149,9 +145,9 @@ def main(
             elif output_text.strip()[-10:].count("False") > 0 or output_text.strip()[-10:].count("false") > 0:
                 match = False
 
-            if data['answer'].count("True") > 0:
+            if data[f'answer{subtask_index}'].count("True") > 0:
                 answer = True
-            elif data['answer'].count("False") > 0:
+            elif data[f'answer{subtask_index}'].count("False") > 0:
                 answer = False
 
             if match is not None and answer is not None and match == answer:

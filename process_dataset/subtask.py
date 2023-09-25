@@ -80,11 +80,11 @@ def get_answer(tags, rows, index):
 
 
 def transform_json(data):
-    return {'prompt1': template1.map(data['rows']),
+    return {'prompt1': template1.format(data['rows']),
             'answer1': "Answer: " + str(data['answer1']),
-            'prompt2': template2.map(data['rows']),
+            'prompt2': template2.format(data['rows']),
             'answer2': "Answer: " + str(data['answer2']),
-            'prompt3': template3.map(data['rows']),
+            'prompt3': template3.format(data['rows']),
             'answer3': "Answer: " + str(data['answer3']),
             "type": get_type(data['answer1'], data['answer2'], data['answer3'])
             }
