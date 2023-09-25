@@ -115,6 +115,7 @@ def main(
         output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         if not is_multi:
+            print(output_text.strip()[:-10])
             print(f"Input: \n {user_prompt}")
             print(f"Answer: {data['answer']}")
             print(f"Model Output: \n {output_text}")
