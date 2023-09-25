@@ -115,7 +115,6 @@ def main(
         output_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
         if not is_multi:
-            print(output_text.strip()[-10:])
             print(f"Input: \n {user_prompt}")
             print(f"Answer: {data['answer']}")
             print(f"Model Output: \n {output_text}")
@@ -138,7 +137,11 @@ def main(
                 match = True
             elif output_text.strip()[-10:].count("False") > 0 or output_text.strip()[-10:].count("false") > 0:
                 match = False
-            if str(match) == data['answer']:
+            if data['answer'].count("True") > 0:
+                answer = True
+            elif data['answer'].count("False") > 0:
+                answer = False
+            if match == answer:
                 right_answer_count += 1
             else:
                 error_log.write(output_text + '\n' + str(match) + '\n' + str(data['answer']))
