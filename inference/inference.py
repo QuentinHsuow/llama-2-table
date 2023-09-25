@@ -166,7 +166,7 @@ def main(
                     FP += 1
                 elif match is False:
                     FN += 1
-                error_log.write(output_text + '\n' + str(match) + '\n' + str(data['answer']))
+                error_log.write(output_text + '\n' + str(match) + '\n' + str(data[f'answer{subtask_index}']))
 
     error_log.close()
     if subtask_index != 1:
