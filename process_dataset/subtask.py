@@ -69,11 +69,9 @@ def get_answer(tags, rows, index):
         return num_header
     elif index == 2:
         is_have = False
-        for tag in tags[num_header:-1]:
-            if tag == "AGG" or tag == "SEC":
-                is_have = True
-            if tags[num_header:-1].count("AGG") > 1:
-                is_have = True
+        if (tags[num_header:-1].count("BOD") > 1 or tags[num_header:-1].count("AGG") > 0
+                or tags[num_header:-1].count("SEC") > 0):
+            is_have = True
         return is_have
     elif index == 3:
         return tags[-1] == "AGG"
@@ -196,6 +194,7 @@ def run(feature_file):
     sample = open(save_prefix + save_folder + 'sample.txt', 'w')
     with open(save_prefix + 'original_feature/' + feature_file + '.txt', 'r') as f:
         tables = f.readlines()
+
 
     # get output
     output = []
