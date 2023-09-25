@@ -20,6 +20,13 @@ from llama_recipes.inference.model_utils import load_model, load_peft_model, loa
 from llama_recipes.configs.datasets import tablesense_dataset
 
 
+def calculate_f1(TP, FP, FN):
+    precision = TP / (TP + FP)
+    recall = TP / (TP + FN)
+    f1 = 2 / (1 / precision + 1 / recall)
+    return precision, recall, f1
+
+
 def main(
         model_name,
         peft_model: str = None,
@@ -90,6 +97,7 @@ def main(
     continue_count = 0
     wrong_format_count = 0
     right_answer_count = 0
+    TP = TN = FP = FN = 0
     for data in tqdm(user_prompt_list) if is_multi else user_prompt_list:
         user_prompt = data['prompt']
         batch = tokenizer(user_prompt, return_tensors="pt")
@@ -133,6 +141,7 @@ def main(
                 error_log.write(output_text + '\n' + match[-1] + '\n' + reality[-1])
         else:
             match = None
+            answer = None
             if output_text.strip()[-10:].count("True") > 0 or output_text.strip()[-10:].count("True") > 0:
                 match = True
             elif output_text.strip()[-10:].count("False") > 0 or output_text.strip()[-10:].count("false") > 0:
@@ -141,13 +150,24 @@ def main(
                 answer = True
             elif data['answer'].count("False") > 0:
                 answer = False
-            if match == answer:
+            if match is not None and answer is not None and match == answer:
+                if match is True:
+                    TP += 1
+                if match is False:
+                    TN += 1
                 right_answer_count += 1
+            elif match is None or answer is None:
+                wrong_format_count += 1
             else:
+                if match is True:
+                    FP += 1
+                else:
+                    FN += 1
                 error_log.write(output_text + '\n' + str(match) + '\n' + str(data['answer']))
 
-
     error_log.close()
+    precision, recall, f1 = calculate_f1(TP=TP, FP=FP, FN=FN)
+    print(f"precision: {precision}, recall: {recall}, f1: {f1}")
     print(f"Continue Count: {continue_count}")
     print(f"Right Answer: {right_answer_count}")
     print(f"Wrong Format: {wrong_format_count}")
