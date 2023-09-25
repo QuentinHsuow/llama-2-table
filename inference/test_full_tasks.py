@@ -13,3 +13,7 @@ def main():
     for index in range(1, 4):
         precision, recall, f1 = calculate_stat(result, index)
         print(f"Type{index}: Precision {precision}, Recall{recall}, f1{f1}")
+
+
+if __name__ == "__main__":
+    main()
