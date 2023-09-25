@@ -14,7 +14,14 @@ save_prefix = "/spot/v-qinyuxu/"
 save_folder = "llama_dataset/"
 
 
-def get_type():
+def get_type(header_num, middle_homo, final_AGG):
+    if header_num == 1 and middle_homo is True:
+        if final_AGG is True:
+            return 2
+        else:
+            return 1
+    else:
+        return 3
 
 
 # read table from dataset
@@ -74,6 +81,7 @@ def transform_json(data):
             'answer1': "Answer: " + str(data['answer1']),
             'answer2': "Answer: " + str(data['answer2']),
             'answer3': "Answer: " + str(data['answer3']),
+            type: get_type(data['answer1'], data['answer2'], data['answer3'])
             }
 
 
