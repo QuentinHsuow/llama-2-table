@@ -12,10 +12,11 @@ with open(os.path.join(Path(__file__).parent.parent.parent.parent, 'settings.jso
 
 
 class TableSenseDataset(Dataset):
-    def __init__(self, dataset_config, tokenizer, partition="train", max_words=limit):
+    def __init__(self, dataset_config, tokenizer, partition="train", max_words=limit, subtask_index=1):
         self.tables = json.load(open(os.path.join(dataset_config.data_path, partition + "_row_feature.json")))
         self.tokenizer = tokenizer
         self.max_words = max_words
+        self.subtask = subtask_index
 
     def __len__(self):
         return len(self.tables)
@@ -23,8 +24,8 @@ class TableSenseDataset(Dataset):
     def __getitem__(self, index):
         IGNORE_INDEX = -100  # The default setting in CrossEntropyLoss
         table_item = self.tables[index]
-        prompt = table_item['prompt']
-        example = prompt + table_item['answer']
+        prompt = table_item[f'prompt{self.subtask}']
+        example = prompt + table_item[f'answer{self.subtask}']
         prompt = torch.tensor(
             self.tokenizer.encode(prompt), dtype=torch.int64
         )

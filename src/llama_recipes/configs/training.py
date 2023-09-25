@@ -24,7 +24,7 @@ class train_config:
     dataset = "tablesense_dataset"
     peft_method: str = "lora" # None , llama_adapter, prefix
     use_peft: bool=False
-    output_dir: str = "Llama-2-7b-save"
+    output_dir: str = "Llama-2-7b-save/default"
     freeze_layers: bool = False
     num_freeze_layers: int = 1
     quantization: bool = False

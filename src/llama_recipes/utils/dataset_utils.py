@@ -51,7 +51,9 @@ def get_custom_dataset(dataset_config, tokenizer, split: str):
 DATASET_PREPROC = {
     "alpaca_dataset": partial(get_alpaca_dataset, max_words=224),
     "custom_dataset": get_custom_dataset,
-    "tablesense_dataset": get_tablesense_dataset,
+    "tablesense_dataset_1": partial(get_tablesense_dataset, subtask_index=1),
+    "tablesense_dataset_2": partial(get_tablesense_dataset, subtask_index=2),
+    "tablesense_dataset_3": partial(get_tablesense_dataset, subtask_index=3),
 }
 
 
