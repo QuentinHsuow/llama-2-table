@@ -56,7 +56,7 @@ def main(
         # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
         **kwargs
 ):
-    user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path,
+    user_prompt_list = json.load(open(os.path.join(tablesense_dataset.data_path, f"subtask_{str(subtask_index)}",
                                                    "train_row_feature.json" if is_dev else "test_263_row_feature.json"), 'r'))
     # Set the seeds for reproducibility
     torch.cuda.manual_seed(seed)
