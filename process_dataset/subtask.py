@@ -190,11 +190,11 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row):
 def run(feature_file):
     # get input
     err_count = 0
+    simple_count = 0
     dic = get_full_table()
     sample = open(save_prefix + save_folder + 'sample.txt', 'w')
     with open(save_prefix + 'original_feature/' + feature_file + '.txt', 'r') as f:
         tables = f.readlines()
-
 
     # get output
     output = []
@@ -202,6 +202,8 @@ def run(feature_file):
         data = get_output_from_table_one(table, dic)
         if data:
             sample.write('\n'.join(data['rows']) + '\n' + str(data['answer1']) + '  ' + str(data['answer2']) + '  ' + str(data['answer3']) + '  ' + '\n\n\n')
+            if data['answer1'] == 1 and data['answer2'] == False:
+                simple_count += 1
             data_json = transform_json(data)
             if len(data['rows']) + 20 + 150 > limit:
                 err_count += 1
@@ -214,7 +216,8 @@ def run(feature_file):
             #     sample.write(data_da['prompt'] + '\n' + data_da['answer'] + '\n\n')
         else:
             err_count += 1
-    print(err_count)
+    print("Error: " + str(err_count))
+    print(simple_count)
 
     # write into one json file
     sample.close()
