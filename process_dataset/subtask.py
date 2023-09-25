@@ -203,7 +203,7 @@ def run(feature_file):
         data = get_output_from_table_one(table, dic)
         if data:
             data_json = transform_json(data)
-            if len(data_json['rows']) + 20 + 150 > limit:
+            if len(data['rows']) + 20 + 150 > limit:
                 err_count += 1
                 continue
             output.append(data_json)
