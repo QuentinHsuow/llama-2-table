@@ -18,7 +18,7 @@ save_folder = "llama_dataset/"
 
 
 def get_type(header_num, middle_homo, final_AGG):
-    if header_num == 1 and middle_homo is True:
+    if header_num == 1 and middle_homo is False:
         if final_AGG is True:
             return 2
         else:
@@ -78,13 +78,13 @@ def get_answer(tags, rows, index):
 
 
 def transform_json(data):
-    return {'prompt1': template1.format(data['rows']),
+    return {"type": get_type(data['answer1'], data['answer2'], data['answer3']),
+            'prompt1': template1.format(data['rows']),
             'answer1': "Answer: " + str(data['answer1']),
             'prompt2': template2.format(data['rows']),
             'answer2': "Answer: " + str(data['answer2']),
             'prompt3': template3.format(data['rows']),
             'answer3': "Answer: " + str(data['answer3']),
-            "type": get_type(data['answer1'], data['answer2'], data['answer3'])
             }
 
 
@@ -202,7 +202,7 @@ def run(feature_file):
         data = get_output_from_table_one(table, dic)
         if data:
             sample.write('\n'.join(data['rows']) + '\n' + str(data['answer1']) + '  ' + str(data['answer2']) + '  ' + str(data['answer3']) + '  ' + '\n\n\n')
-            if data['answer1'] == 1 and data['answer2'] == False:
+            if data['answer1'] == 1 and data['answer2'] is False:
                 simple_count += 1
             data_json = transform_json(data)
             if len(data['rows']) + 20 + 150 > limit:

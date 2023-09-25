@@ -6,7 +6,7 @@ def calculate_f1(TP, FP, FN):
 
 
 def get_type(header_num, middle_homo, final_AGG):
-    if header_num == 1 and middle_homo is True:
+    if header_num == 1 and middle_homo is False:
         if final_AGG is True:
             return 2
         else:
