@@ -120,7 +120,7 @@ def main(
 
         if not is_multi:
             print(f"Input: \n {user_prompt}")
-            print(f"Answer: {data[f'answer{subtask_index}']}")
+            print(data[f'answer{subtask_index}'])
             print(f"Model Output: \n {output_text}")
             return
 
