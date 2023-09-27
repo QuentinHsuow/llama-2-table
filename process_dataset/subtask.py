@@ -233,7 +233,7 @@ def run(feature_file, tokenizer):
 def main(
         model_name: str
 ):
-    tokenizer = LlamaTokenizer.from_pretrained(os.path.join('/spot/v-qinyuxu'), model_name)
+    tokenizer = LlamaTokenizer.from_pretrained(os.path.join('/spot/v-qinyuxu', model_name))
     tokenizer.add_special_tokens({"pad_token": "<PAD>"})
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     for file in ['train_row_feature', 'test_263_row_feature']:
