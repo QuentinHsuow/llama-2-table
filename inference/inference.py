@@ -135,7 +135,7 @@ def main(
             if int(match[-1]) == int(reality[-1]):
                 right_answer_count += 1
             else:
-                error_log.write(output_text + '\n' + match[-1] + '\n' + reality[-1])
+                error_log.write(output_text + '\n' + 'Real: ' + reality[-1] + '\n')
         else:
             match = None
             answer = None

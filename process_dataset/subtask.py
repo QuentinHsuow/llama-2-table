@@ -157,6 +157,7 @@ def extract_from_table(rows, tags, tokenizer):
     if len(to_include) <= 2:
         return None
 
+    assert len(tags) == len(rows)
     # assert get_answer(tags, rows, subtask_index) == get_answer(ori_tags, rows, subtask_index)
     return {
         "rows": to_markdown_table(rows),
