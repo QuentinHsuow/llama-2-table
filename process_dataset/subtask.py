@@ -209,7 +209,7 @@ def run(feature_file, tokenizer):
 
     # get output
     output = []
-    for table in tqdm(tables):
+    for index, table in tqdm(enumerate(tables)):
         data = get_output_from_table_one(table, dic, tokenizer)
         if data:
             sample.write('\n'.join(data['rows']) + '\n' + str(data['answer1']) + '  ' + str(data['answer2']) + '  ' + str(data['answer3']) + '  ' + '\n\n\n')
@@ -217,9 +217,11 @@ def run(feature_file, tokenizer):
             length = torch.tensor(tokenizer.encode(data['rows']), dtype=torch.int64).shape[0]
             if length + 20 + 150 > limit:
                 err_count += 1
+                print(index)
                 continue
             output.append(data_json)
         else:
+            print(index)
             err_count += 1
     print("Error: " + str(err_count))
 
