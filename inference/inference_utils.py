@@ -5,8 +5,8 @@ def calculate_f1(TP, FP, FN):
     return precision, recall, f1
 
 
-def get_type(header_num, middle_homo, final_AGG):
-    if header_num == 1 and middle_homo is True:
+def get_type(header_num, middle_not_homo, final_AGG):
+    if header_num == 1 and middle_not_homo is False:
         if final_AGG is True:
             return 2
         else:
