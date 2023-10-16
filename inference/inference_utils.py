@@ -1,7 +1,7 @@
 def calculate_f1(TP, FP, FN):
     precision = TP / (TP + FP)
     recall = TP / (TP + FN)
-    f1 = 2 / (1 / precision + 1 / recall)
+    f1 = 2 / (1 / precision + 1 / recall) if precision != 0 and recall != 0 else None
     return precision, recall, f1
 
 
