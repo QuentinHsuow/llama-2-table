@@ -6,7 +6,7 @@
     "<BEGIN_Q>", "<END_Q>",
     "<tr>", "</tr>", "<formula>"],
   "prompt_template1": "<BEGIN_Q>Read the following table, and determine the number of header rows in this table.<END_Q><BEGIN_T>{}<END_T>",
-  "prompt_template2": "<BEGIN_Q>Read the following table, and determine if there are aggregation rows or multiple non-homogeneous data sections between the header and the second-to-last row.<END_Q><BEGIN_T>{}<END_T>",
+  "prompt_template2": "<BEGIN_Q>Read the following table, and determine if there are aggregation rows or multiple non-homogeneous data sections from header to the last row. Ignore the last row if it is an aggregation row.<END_Q><BEGIN_T>{}<END_T>",
   "prompt_template3": "<BEGIN_Q>Read the following table, and determine if the last row is an aggregation(true) or not(false)<END_Q><BEGIN_T>{}<END_T>",
   "pattern": "(\\d+)"
 }
