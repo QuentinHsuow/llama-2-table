@@ -199,11 +199,11 @@ def get_output_from_table_one(original_feature_one, dic_specifier_to_row, tokeni
         return extract_from_table(list_of_row_original_table, tags, tokenizer)
 
 
-def run(feature_file, tokenizer):
+def run(feature_file, tokenizer, save_dir):
     # get input
     err_count = 0
     dic = get_full_table()
-    sample = open(save_prefix + save_folder + 'sample.txt', 'w')
+    sample = open(save_prefix + save_folder + save_dir + '/' + 'sample.txt', 'w')
     with open(save_prefix + 'original_feature/' + feature_file + '.txt', 'r') as f:
         tables = f.readlines()
 
@@ -228,18 +228,19 @@ def run(feature_file, tokenizer):
     # write into one json file
     sample.close()
     # random.shuffle(output)
-    f = jsonlines.open(save_prefix + save_folder + feature_file + '.json', 'w')
+    f = jsonlines.open(save_prefix + save_folder + save_dir + '/' + feature_file + '.json', 'w')
     jsonlines.Writer.write(f, output)
 
 
 def main(
-        model_name: str
+        model_name: str,
+        save_dir: str,
 ):
     tokenizer = LlamaTokenizer.from_pretrained(os.path.join('/spot/v-qinyuxu', model_name))
     tokenizer.add_special_tokens({"pad_token": "<PAD>"})
     tokenizer.add_tokens(special_tokens, special_tokens=True)
     for file in ['test_263_row_feature']:
-        run(file, tokenizer)
+        run(file, tokenizer, save_dir)
 
 
 if __name__ == '__main__':
