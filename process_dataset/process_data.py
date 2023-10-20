@@ -108,7 +108,10 @@ def process_long_snd(rows, tags, tokenizer):
         if is_snd and not is_bod and tag == "BOD" and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
             to_include.append(index)
             length += torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
-        if is_snd and is_bod and is_agg and tag =="AGG" and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
+        elif is_snd and is_bod and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
+            to_include.append(index)
+            length += torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
+        elif is_snd and is_bod and is_agg and tag =="AGG" and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
             to_include.append(index)
             length += torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
 
@@ -121,7 +124,6 @@ def process_long_snd(rows, tags, tokenizer):
         print("NOOO")
         return None
     if length > limit:
-        print("WHAT")
         return None
 
     assert len(tags) == len(rows)
