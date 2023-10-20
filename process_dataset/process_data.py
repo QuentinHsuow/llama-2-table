@@ -155,7 +155,7 @@ def extract_from_table(rows, tags, tokenizer):
     tags = [tags[i] for i in to_include]
 
     if len(to_include) <= 2:
-        print(to_include)
+        print(rows)
         return None
 
     assert len(tags) == len(rows)
