@@ -96,6 +96,45 @@ def transform_json(data):
             }
 
 
+def process_long_snd(rows, tags, tokenizer):
+    to_include = []
+    is_snd = True
+    is_bod = False
+    is_agg = False
+    length = (150  # length of the template
+              + torch.tensor(tokenizer.encode(to_markdown_table([rows[0]])), dtype=torch.int64).shape[0]
+              + 20)
+    for index, tag in enumerate(tags):
+        if is_snd and not is_bod and tag == "BOD" and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
+            to_include.append(index)
+            length += length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
+        if is_snd and is_bod and is_agg and tag =="AGG" and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
+            to_include.append(index)
+            length += length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
+
+    to_include = list(set(to_include))
+    to_include.sort()
+    rows = [rows[i] for i in to_include]
+    tags = [tags[i] for i in to_include]
+
+    if len(to_include) <= 2:
+        print("NOOO")
+        return None
+    if length > limit:
+        print("WHAT")
+        return None
+
+    assert len(tags) == len(rows)
+    # assert get_answer(tags, rows, subtask_index) == get_answer(ori_tags, rows, subtask_index)
+    return {
+        "rows": to_markdown_table(rows),
+        "answer1": get_answer(tags, rows, 1),
+        "answer2": get_answer(tags, rows, 2),
+        "answer3": get_answer(tags, rows, 3),
+    }
+
+
+
 def extract_from_table(rows, tags, tokenizer):
     # for all the rows starting from the header down to the second to last row
     # BOD: it's necessary to extract at least one BOD and one DAT in this data section; SND: include it
@@ -110,17 +149,16 @@ def extract_from_table(rows, tags, tokenizer):
             break
 
     to_include = list(range(num_header))
-    length = (  150  # length of the template
-              + torch.tensor(tokenizer.encode(to_markdown_table(rows[:num_header])), dtype=torch.int64).shape[0]
-              + 20)  # length of answer
+    length = (150  # length of the template
+              +torch.tensor(tokenizer.encode(to_markdown_table(rows[:num_header])), dtype=torch.int64).shape[0]
+              +20)  # length of answer
 
     if tags[-1] != "SND":
         to_include.append(len(tags) - 1)
         length += torch.tensor(tokenizer.encode(to_markdown_table([rows[-1]])), dtype=torch.int64).shape[0]
 
     if length > limit:
-        print(rows)
-        return None
+        return process_long_snd(rows, tags, tokenizer)
     is_non_snd = False
     for index, tag in enumerate(tags[num_header:-1], start=num_header):
         if tag == "SND" and is_non_snd is False:
@@ -156,7 +194,6 @@ def extract_from_table(rows, tags, tokenizer):
     tags = [tags[i] for i in to_include]
 
     if len(to_include) <= 2:
-        print(rows)
         return None
 
     assert len(tags) == len(rows)
