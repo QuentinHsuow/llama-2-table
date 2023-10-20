@@ -119,6 +119,7 @@ def extract_from_table(rows, tags, tokenizer):
         length += torch.tensor(tokenizer.encode(to_markdown_table([rows[-1]])), dtype=torch.int64).shape[0]
 
     if length > limit:
+        print(rows)
         return None
     is_non_snd = False
     for index, tag in enumerate(tags[num_header:-1], start=num_header):
