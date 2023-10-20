@@ -77,8 +77,8 @@ def get_answer(tags, rows, index):
         return num_header
     elif index == 2:
         is_have = False
-        if (tags[num_header].count("BOD") > 1 or tags[num_header:-1].count("AGG") > 0
-                or tags[num_header].count("SEC") > 0 or tags[num_header].count("SND") > 0):
+        if (tags[num_header:].count("BOD") > 1 or tags[num_header:-1].count("AGG") > 0
+                or tags[num_header:].count("SEC") > 0 or tags[num_header:].count("SND") > 0):
             is_have = True
         return is_have
     elif index == 3:
