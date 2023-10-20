@@ -155,6 +155,7 @@ def extract_from_table(rows, tags, tokenizer):
     tags = [tags[i] for i in to_include]
 
     if len(to_include) <= 2:
+        print(to_include)
         return None
 
     assert len(tags) == len(rows)
@@ -218,11 +219,9 @@ def run(feature_file, tokenizer, save_dir):
             if length + 20 + 150 > limit:
                 err_count += 1
                 print(index)
-                print(length)
                 continue
             output.append(data_json)
         else:
-            print("EEEEE")
             print(index)
             err_count += 1
     print("Error: " + str(err_count))
