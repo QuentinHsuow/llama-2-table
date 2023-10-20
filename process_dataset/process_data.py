@@ -107,10 +107,10 @@ def process_long_snd(rows, tags, tokenizer):
     for index, tag in enumerate(tags):
         if is_snd and not is_bod and tag == "BOD" and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
             to_include.append(index)
-            length += length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
+            length += torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
         if is_snd and is_bod and is_agg and tag =="AGG" and length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1 <= limit:
             to_include.append(index)
-            length += length + torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
+            length += torch.tensor(tokenizer.encode(to_markdown_table([rows[index]])), dtype=torch.int64).shape[0] + 1
 
     to_include = list(set(to_include))
     to_include.sort()
