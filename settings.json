@@ -1,12 +1,12 @@
 {
-  "limit": 1800,
+  "limit": 2400,
   "extend": 50,
   "special_tokens": [
     "<BEGIN_T>", "<END_T>",
     "<BEGIN_Q>", "<END_Q>",
     "<tr>", "</tr>", "<formula>"],
   "prompt_template1": "<BEGIN_Q>Read the following table, and determine the number of header rows in this table.<END_Q><BEGIN_T>{}<END_T>",
-  "prompt_template2": "<BEGIN_Q>Read the following table, and determine if there are aggregation rows or multiple non-homogeneous data sections from header to the last row. Ignore the last row if it is an aggregation row.<END_Q><BEGIN_T>{}<END_T>",
+  "prompt_template2": "<BEGIN_Q>Read the following table, and determine if it contains aggregation rows or multiple sections of non-homogeneous data from the header(exclude header) to the last row. Disregard the last row if it serves as an aggregation row.<END_Q><BEGIN_T>{}<END_T>",
   "prompt_template3": "<BEGIN_Q>Read the following table, and determine if the last row is an aggregation(true) or not(false)<END_Q><BEGIN_T>{}<END_T>",
   "pattern": "(\\d+)"
 }
