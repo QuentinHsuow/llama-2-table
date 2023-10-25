@@ -86,6 +86,7 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                 train_loss_step.append(loss.detach().to('cpu').float())
                 total_loss += loss.detach().float()
                 print(loss)
+                print(loss.requires_grad)
                 if train_config.use_fp16:
                     # if fp16 is enabled, use gradient scaler to handle gradient update
                     scaler.scale(loss).backward()
