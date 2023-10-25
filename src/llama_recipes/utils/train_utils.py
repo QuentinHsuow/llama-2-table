@@ -83,7 +83,8 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                         batch[key] = batch[key].to('cuda:0')
                 loss = model(**batch).loss
                 loss = loss / gradient_accumulation_steps
-                loss.require_grad = True
+                loss: torch.Tensor = loss
+                loss.requires_grad_(True)
                 train_loss_step.append(loss.detach().to('cpu').float())
                 total_loss += loss.detach().float()
                 if train_config.use_fp16:
