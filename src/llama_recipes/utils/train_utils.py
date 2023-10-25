@@ -5,6 +5,7 @@ import os
 import time
 import yaml
 import math
+from contextlib import nullcontext
 from pathlib import Path
 from pkg_resources import packaging
 
@@ -32,7 +33,6 @@ def set_tokenizer_params(tokenizer: LlamaTokenizer):
 def byte2mb(x):
     return int(x / 2**20)
 
-
 def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_scheduler, gradient_accumulation_steps, train_config, fsdp_config=None, local_rank=None, rank=None):
     """
     Trains the model on the given dataloader
@@ -57,7 +57,9 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
     elif train_config.use_fp16 and not train_config.enable_fsdp:
         scaler = torch.cuda.amp.GradScaler() 
     if train_config.enable_fsdp:
-        world_size = int(os.environ["WORLD_SIZE"]) 
+        world_size = int(os.environ["WORLD_SIZE"])
+    autocast = torch.cuda.amp.autocast if train_config.use_fp16 else nullcontext
+
     train_prep = []
     train_loss = []
     val_prep = []
@@ -81,7 +83,8 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                         batch[key] = batch[key].to(local_rank)
                     else:
                         batch[key] = batch[key].to('cuda:0')
-                loss = model(**batch).loss
+                with autocast():
+                    loss = model(**batch).loss
                 loss = loss / gradient_accumulation_steps
                 loss: torch.Tensor = loss
                 loss.requires_grad_(True)
@@ -107,7 +110,7 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
                 draw_plot(train_loss_step, step=step, epoch=epoch)
             pbar.close()
                 
-        epoch_end_time = time.perf_counter() - epoch_start_time
+        epoch_end_time = time.perf_counter()-epoch_start_time
         epoch_times.append(epoch_end_time)    
         # Reducing total_loss across all devices if there's more than one CUDA device
         if torch.cuda.device_count() > 1 and train_config.enable_fsdp:
@@ -218,7 +221,6 @@ def train(model, train_dataloader,eval_dataloader, tokenizer, optimizer, lr_sche
         
     return results
 
-
 def evaluation(model,train_config, eval_dataloader, local_rank, tokenizer):
     """
     Evaluates the model on the given dataloader
@@ -274,7 +276,6 @@ def evaluation(model,train_config, eval_dataloader, local_rank, tokenizer):
         
     return eval_ppl, eval_epoch_loss
 
-
 def freeze_transformer_layers(model, num_layer):
    for i, layer in enumerate(model.model.layers):
             if i < num_layer:
@@ -324,7 +325,6 @@ def get_parameter_dtypes(model):
         parameter_dtypes[name] = parameter.dtype
     return parameter_dtypes
 
-
 def print_model_size(model, config, rank: int = 0) -> None:
     """
     Print model name, the number of trainable parameters and initialization time.
@@ -340,6 +340,8 @@ def print_model_size(model, config, rank: int = 0) -> None:
         print(f"--> Model {config.model_name}")
         total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         print(f"\n--> {config.model_name} has {total_params / 1e6} Million params\n")
+
+
 
 
 def get_policies(cfg, rank):
@@ -373,7 +375,6 @@ def get_policies(cfg, rank):
             print(f"bFloat16 support not present. Using FP32, and not mixed precision")
     wrapping_policy = get_llama_wrapper()
     return mixed_precision_policy, wrapping_policy
-
 
 def save_train_params(train_config, fsdp_config, rank):
     """
