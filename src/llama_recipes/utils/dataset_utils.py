@@ -10,6 +10,7 @@ import torch
 from llama_recipes.datasets import (
     get_alpaca_dataset,
     get_tablesense_dataset,
+    get_tabledetection_dataset
 )
 
 
@@ -54,6 +55,7 @@ DATASET_PREPROC = {
     "tablesense_dataset_1": partial(get_tablesense_dataset, subtask_index=1),
     "tablesense_dataset_2": partial(get_tablesense_dataset, subtask_index=2),
     "tablesense_dataset_3": partial(get_tablesense_dataset, subtask_index=3),
+    'tabledetection_dataset': get_tabledetection_dataset,
 }
 
 

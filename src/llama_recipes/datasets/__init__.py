@@ -3,3 +3,4 @@
 
 from llama_recipes.datasets.alpaca_dataset import InstructionDataset as get_alpaca_dataset
 from llama_recipes.datasets.tablesense_dataset import TableSenseDataset as get_tablesense_dataset
+from llama_recipes.datasets.tabledetection_dataset import TableDetectionDataset as get_tabledetection_dataset

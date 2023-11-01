@@ -21,6 +21,14 @@ class alpaca_dataset:
 
 
 @dataclass
+class tabledetection_dataset:
+    dataset: str = 'tabledetection_dataset'
+    train_split: str = 'train'
+    test_split: str = 'teset_263'
+    data_path: str = 'datasets/tabledetection_dataset'
+
+
+@dataclass
 class tablesense_dataset_1:
     dataset: str = 'tablesense_dataset_1'
     train_split: str = "train"
@@ -42,7 +50,6 @@ class tablesense_dataset_3:
     train_split: str = "train"
     test_split: str = "test_263"
     data_path: str = "src/llama_recipes/datasets/tablesense_dataset/subtask_all"
-
 
 
 @dataclass
