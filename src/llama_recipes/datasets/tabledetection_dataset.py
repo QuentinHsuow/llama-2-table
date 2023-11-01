@@ -2,18 +2,18 @@ import copy
 import json
 import os
 import torch
+import jsonlines
 
 from torch.utils.data import Dataset
 from pathlib import Path
 
-with open(os.path.join(Path(__file__).parent.parent.parent.parent, 'settings.json'), 'r') as settings:
-    settings_json = json.load(settings)
-    limit = settings_json['limit']
-
 
 class TableDetectionDataset(Dataset):
-    def __init__(self, dataset_config, tokenizer, partition="train", max_words=limit, subtask_index=1):
-        self.tables = json.load(open(os.path.join(dataset_config.data_path, partition + "_row_feature.json")))
+    def __init__(self, dataset_config, tokenizer, partition="train", max_words=4000, subtask_index=1):
+        self.tables = []
+        with open(os.path.join(dataset_config.data_path, partition + ".jsonl")) as json_file:
+            for line in json_file.readlines():
+                self.tables.append(json.loads(line))
         self.tokenizer = tokenizer
         self.max_words = max_words
         self.subtask = subtask_index
@@ -24,8 +24,8 @@ class TableDetectionDataset(Dataset):
     def __getitem__(self, index):
         IGNORE_INDEX = -100  # The default setting in CrossEntropyLoss
         table_item = self.tables[index]
-        prompt = table_item[f'prompt{self.subtask}']
-        example = prompt + table_item[f'answer{self.subtask}']
+        prompt = table_item['prompt']
+        example = prompt + table_item[f'answer']
         prompt = torch.tensor(
             self.tokenizer.encode(prompt), dtype=torch.int64
         )
