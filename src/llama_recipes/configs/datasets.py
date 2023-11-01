@@ -25,7 +25,7 @@ class tabledetection_dataset:
     dataset: str = 'tabledetection_dataset'
     train_split: str = 'train'
     test_split: str = 'teset_263'
-    data_path: str = 'datasets/tabledetection_dataset'
+    data_path: str = 'src/llama_recipes/datasets/tabledetection_dataset'
 
 
 @dataclass
