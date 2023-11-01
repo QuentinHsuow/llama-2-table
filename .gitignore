@@ -3,5 +3,8 @@ __pycache__
 .ipynb_checkpoints
 .idea
 scripts/quick_action
-Llama-2-7b-save
 scripts
+*.sh
+llama/
+saved_result/
+src/llama_recipes/datasets/*dataset/
