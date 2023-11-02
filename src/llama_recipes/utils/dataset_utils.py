@@ -8,8 +8,6 @@ from pathlib import Path
 import torch
 
 from llama_recipes.datasets import (
-    get_grammar_dataset,
-    get_alpaca_dataset,
     get_tablesense_dataset,
     get_tabledetection_dataset
 )
