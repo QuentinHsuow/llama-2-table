@@ -24,7 +24,7 @@ class alpaca_dataset:
 class tabledetection_dataset:
     dataset: str = 'tabledetection_dataset'
     train_split: str = 'train'
-    test_split: str = 'teset_263'
+    test_split: str = 'test'
     data_path: str = 'src/llama_recipes/datasets/tabledetection_dataset'
 
 

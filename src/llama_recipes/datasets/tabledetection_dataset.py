@@ -16,7 +16,6 @@ class TableDetectionDataset(Dataset):
                 self.tables.append(json.loads(line))
         self.tokenizer = tokenizer
         self.max_words = max_words
-        self.subtask = subtask_index
 
     def __len__(self):
         return len(self.tables)
@@ -35,8 +34,10 @@ class TableDetectionDataset(Dataset):
             example, dtype=torch.int64
         )
         padding = self.max_words - example.shape[0]
-        assert padding > 0
-        example = torch.cat((example, torch.zeros(padding, dtype=torch.int64) - 1))
+        if padding > 0:
+            example = torch.cat((example, torch.zeros(padding, dtype=torch.int64) - 1))
+        elif padding < 0:
+            example = example[: self.max_words]
         labels = copy.deepcopy(example)
         labels[: len(prompt)] = -1
         example_mask = example.ge(0)
@@ -45,6 +46,9 @@ class TableDetectionDataset(Dataset):
         labels[~label_mask] = IGNORE_INDEX
         example_mask = example_mask.float()
         label_mask = label_mask.float()
+        print(labels.shape)
+        print(example.shape)
+        print(example_mask.shape)
 
         return {
             "input_ids": example,
