@@ -10,7 +10,7 @@ After installing the llama-recipes package through [pip](../README.md#installati
 ```
 python -m llama_recipes.finetuning <parameters>
 
-python examnples/finetuning.py <parameters>
+python examples/finetuning.py <parameters>
 ```
 Please see [README.md](../README.md) for details.
 
@@ -29,7 +29,7 @@ So far, we have provide the following inference examples:
 
 For more in depth information on inference including inference safety checks and examples, see the inference documentation [here](../docs/inference.md).
 
-**Note** The [sensitive topics safety checker](../llama_recipes/inference/safety_utils.py) utilizes AuditNLG which is an optional dependency. Please refer to installation section of the main [README.md](../README.md#install-with-optional-dependencies) for details.
+**Note** The [sensitive topics safety checker](../src/llama_recipes/inference/safety_utils.py) utilizes AuditNLG which is an optional dependency. Please refer to installation section of the main [README.md](../README.md#install-with-optional-dependencies) for details.
 
 **Note** The **vLLM** example requires additional dependencies. Please refer to installation section of the main [README.md](../README.md#install-with-optional-dependencies) for details.
 
